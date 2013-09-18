@@ -20,4 +20,4 @@ Installeres med
 
 ## Konvertér
 
-perl ./bibliofil2koha.pl -i bibliofil.mrc -o koha.mrc
+perl ./bibliofil2koha.pl -i bibliofil.mrc > koha.mrc
