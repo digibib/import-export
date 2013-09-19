@@ -19,11 +19,50 @@ sub client_transform {
 	# Define mapping from item types in source to codes for Koha item types
 	# To be used in 942c and 952y
 	# We will lc before comparing, so use lowercase in the keys
-	# my %item_types = (
-	#   'dvd'        => 'DVD', 
-	#   'tidsskrift' => 'TIDS', 
-	#   'bok'        => 'BOK', 
-	# );
+	my %item_types = (
+    "ab" =>  "Atlas",
+    "ee" =>  "DVD",
+    "ed" =>  "Videotape",
+    "ef" =>  "Blu-ray_Disk",
+    "vo" =>  "File_folder",
+    "gg" =>  "Blu-ray_Disk",
+    "ge" =>  "Web_page",
+    "gd" =>  "CD_ROM",
+    "gc" =>  "DVD-ROM",
+    "gb" =>  "Floppy_disk",
+    "ga" =>  "Computer_file",
+    "ic" =>  "Microfiche",
+    "ib" =>  "Microfilm_reel",
+    "gi" =>  "Nintendo_optical_disc",
+    "gt" =>  "DTbook",
+    "na" =>  "Portable_Document_Format",
+    "j" =>  "Periodical_literature",
+    "dj" =>  "Spoken_word_recording",
+    "dh" =>  "Language_course",
+    "di" =>  "Audiobook",
+    "dg" =>  "Music",
+    "dd" =>  "Digi_book",
+    "de" =>  "Digi_card",
+    "db" =>  "Compact_Cassette",
+    "dc" =>  "Compact_Disc",
+    "da" =>  "Gramophone_record",
+    "dz" =>  "MP3",
+    "ff" =>  "Photography",
+    "fm" =>  "Poster",
+    "a" =>  "Map",
+    "c" =>  "Sheet_music",
+    "b" =>  "Manuscript",
+    "ma" =>  "Personal_computer_game",
+    "mc" =>  "Playstation_3_game",
+    "mb" =>  "Playstation_2_game",
+    "h" =>  "Physical_body",
+    "mo" =>  "Nintendo_Wii_game",
+    "mn" =>  "Nintendo_DS_game",
+    "l" =>  "Book",
+    "mj" =>  "Xbox_360_game",
+    "sm" =>  "Magazine",
+    "fd" =>  "Reversal_film" 
+	);
 
 	my $record = shift;
 
@@ -38,21 +77,25 @@ sub client_transform {
 	
 	# BUILD FIELD 942
 	
-	my $field942 = MARC::Field->new(942, '', '', 'a' => 'sksk');
+	my $field942 = MARC::Field->new(942, ' ', ' ', 'c' => '');
 	
 	# a	Institution code [OBSOLETE]
 
 	# c	Koha [default] item type
-	# if (my $field245h = lc($record->subfield('245', 'h'))) {
-	# 	StripLTSpace($field245h);
-	# 	if ($item_types{$field245h}) {
-	# 		$field942->add_subfields('c' => $item_types{$field245h});
-	# 	} else {
-    	# 		
-  	# 	}
-	# }
-	# Default to a dummy item type for now
-	$field942->add_subfields('c' => 'X');
+  if ($record->subfield('019', 'b')) {
+    my $types = split(',', lc($record->subfield('019', 'b')));
+  
+		foreach ($types) {
+      #StripLTSpace($field019b);
+      if ($item_types{$types}) {
+        printf $item_types{$types};
+        $field942->add_subfields('c' => $item_types{$types});
+      }
+    }
+	}
+	
+  # Default to a dummy item type for now
+	#$field942->add_subfields('c' => 'X');
 
 	# e	Edition
 	# h	Classification part
@@ -103,7 +146,7 @@ sub client_transform {
 	
 	my @field850s = $record->field('850');
 	my $itemcounter = 1;
-        foreach my $field850 (@field850s) {
+    foreach my $field850 (@field850s) {
 	
 		# Comments below are from 
 		# http://wiki.koha-community.org/wiki/Holdings_data_fields_%289xx%29
@@ -118,7 +161,7 @@ sub client_transform {
 		} else {
 			next;
 		}
-		my $field952 = MARC::Field->new(952, '', '', 'a' => $field850a);
+		my $field952 = MARC::Field->new('952', '', '', 'a' => $field850a);
 
 		# Get more info for 952, and add subfields
 	  		
@@ -185,14 +228,15 @@ sub client_transform {
 		# Assemble the call number
 		$field952->add_subfields('o' => $firstpart . $secondpart);
 		
-		# p = Barcode
+		
+    # p = Barcode
 		# max 20 characters 
 		# FIXME Make this less inefficient by not doing it once for every item
 		my $field001 = $record->field('001')->data();
 		# Get the 7 first difits from 001
 		my $titlenumber = substr $field001, 0, 7;
 		# Assemble the barcode
-		$field952->add_subfields('p' => '03011' . $titlenumber . sprintf("%03d", $itemcounter));
+		$field952->add_subfields('p' => '0301' . $titlenumber . sprintf("%03d", $itemcounter));
 
   		# q = Checked out
   
@@ -286,10 +330,17 @@ sub client_transform {
   		
   		# Add this 952 field to the record
   		$record->append_fields($field952);
+      
+      
 
-		} # End of item iteration
+		} # End of field $850 iteration
 
-	$itemcounter = 1;
+  # $999 biblioitemnumber
+  
+  my $faen = MARC::Field->new('999', '', '', 'd' => $record->field('001')->data() );
+	$record->append_fields($faen);
+  
+  $itemcounter = 1;
 	
 	# 2. MOVE DATA FROM NON-NORMARC TO NORMARC FIELDS?
 	
@@ -298,7 +349,7 @@ sub client_transform {
 	# $record = remove_field($record, '005');
 	# $record = remove_field($record, '096');
 	# $record = remove_field($record, '099');	
-
+  
 	return $record;
 
 }
