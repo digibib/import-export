@@ -65,7 +65,6 @@ sub client_transform {
 	);
 
 	my $record = shift;
-
 	# 0. CHECK THAT THIS IS A RECORD WE WANT TO KEEP
 
 	# Skip any records that do not have a 245
@@ -73,6 +72,7 @@ sub client_transform {
 		return;
 	}
 
+  my $field001 = $record->field('001')->data();
 	# 1. BUILD KOHA-SPECIFIC FIELDS
 	
 	# BUILD FIELD 942
@@ -88,7 +88,6 @@ sub client_transform {
 		foreach ($types) {
       #StripLTSpace($field019b);
       if ($item_types{$types}) {
-        printf $item_types{$types};
         $field942->add_subfields('c' => $item_types{$types});
       }
     }
@@ -112,10 +111,6 @@ sub client_transform {
 		$field942->add_subfields('m' => $field096d); 
 	}
 	
-	# n	Suppress in OPAC
-	# SUPPRESS  0  	Vis i OPAC
-	# SUPPRESS 	1 	Ikke vis i OPAC
-	$field942->add_subfields('n' => 0);
 	
 	# TODO
 	# s	Serial record flag
@@ -144,201 +139,198 @@ sub client_transform {
 			
 	# BUILD FIELD 952
 	
-	my @field850s = $record->field('850');
-	my $itemcounter = 1;
+  if ($record->field('850')) {
+    my @field850s = $record->field('850');
+    my $itemcounter = 1;
     foreach my $field850 (@field850s) {
-	
-		# Comments below are from 
-		# http://wiki.koha-community.org/wiki/Holdings_data_fields_%289xx%29
-	
-		# Create field 952, with a = "Permanent location"
-		# Authorized value: branches
-		# owning library
-		# Code must be defined in System Administration > Libraries, Branches and Groups
-		my $field850a = '';
-		if ($field850->subfield('a')) {
-			$field850a = $field850->subfield('a');
-		} else {
-			next;
-		}
-		my $field952 = MARC::Field->new('952', '', '', 'a' => $field850a);
-
-		# Get more info for 952, and add subfields
-	  		
-		# b = Current location
-		# Authorized value: branches
-		# branchcode	 
-		# holding library (usu. the same as 952$a )
-		$field952->add_subfields('b' => $field850a);
-				
-		# c = Shelving location
-		# TODO
-		# Coded value, matching Authorized Value category ('LOC' in default installation)
-		# LOC  	AV  	Audio Visual  	
-		# LOC 	CHILD 	Children's Area 
-		# LOC 	DISPLAY On Display 	  
-		# LOC 	FIC 	Fiction
-		# LOC 	GEN 	General Stacks
-		# LOC 	NEW 	New Materials Shelf
-		# LOC 	REF 	Reference
-		# LOC 	STAFF 	Staff Office
-		$field952->add_subfields('c' => 'GEN');
-			
-		# d = Date acquired
-		# TODO: 099d or 099w? 
-		# Format of date: yyyy-mm-dd
-		# http://wiki.koha.org/doku.php?id=en:development:dateformats&s[]=952 
-		# if (my $field099d = $field099->subfield('d')) {
-		# 	$field099d = format_date($field099d);
-		# 	$field952->add_subfields('d' => $field099d);
-		# }
-	  		
-		# e = Source of acquisition
-		# coded value or vendor string
-		
-		# f = Coded location qualifier
-	
-		# g = Cost, normal purchase price	
-		# decimal number, no currency symbol 
-		# if (my $field020c = $record->subfield('020','c')) {
-		# 	$field952->add_subfields('g' => $field020c);
-		# }
-			
-	  	# h = Serial Enumeration / chronology	
-		# See: t
-			
-		# j = Shelving control number	
-		# STACK
-	  
-		# l = Total Checkouts	
-
-		# m = Total Renewals	
-
-		# n = Total Holds	
-	  
-		# o = Full call number 
-		my $firstpart = '';
-		my $secondpart = '';
-		if ($record->field('090') && $record->field('090')->subfield('c')) {
-			$firstpart = $record->field('090')->subfield('c');
-		}
-		if ($record->field('090') && $record->field('090')->subfield('d')) {
-			$secondpart = ' ' . $record->field('090')->subfield('d');
-		}
-		# Assemble the call number
-		$field952->add_subfields('o' => $firstpart . $secondpart);
-		
-		
-    # p = Barcode
-		# max 20 characters 
-		# FIXME Make this less inefficient by not doing it once for every item
-		my $field001 = $record->field('001')->data();
-		# Get the 7 first difits from 001
-		my $titlenumber = substr $field001, 0, 7;
-		# Assemble the barcode
-		$field952->add_subfields('p' => '0301' . $titlenumber . sprintf("%03d", $itemcounter));
-
-  		# q = Checked out
+    
+      # Comments below are from 
+      # http://wiki.koha-community.org/wiki/Holdings_data_fields_%289xx%29
+    
+      # Create field 952, with a = "Permanent location"
+      # Authorized value: branches
+      # owning library
+      # Code must be defined in System Administration > Libraries, Branches and Groups
+      my $field850a = '';
+      if ($field850->subfield('a')) {
+        $field850a = $field850->subfield('a');
+      } else {
+        #next;
+      }
+      my $field952 = MARC::Field->new('952', '', '', 'a' => $field850a);
   
-  		# r = Date last seen 
+      # Get more info for 952, and add subfields
+          
+      # b = Current location
+      # Authorized value: branches
+      # branchcode	 
+      # holding library (usu. the same as 952$a )
+      $field952->add_subfields('b' => $field850a);
+          
+      # c = Shelving location
+      $field952->add_subfields('c' => 'GEN');
+        
+      # d = Date acquired
+      # TODO: 099d or 099w? 
+      # Format of date: yyyy-mm-dd
+      # http://wiki.koha.org/doku.php?id=en:development:dateformats&s[]=952 
+      # if (my $field099d = $field099->subfield('d')) {
+      # 	$field099d = format_date($field099d);
+      # 	$field952->add_subfields('d' => $field099d);
+      # }
+          
+      # e = Source of acquisition
+      # coded value or vendor string
+      
+      # f = Coded location qualifier
+    
+      # g = Cost, normal purchase price	
+      # decimal number, no currency symbol 
+      # if (my $field020c = $record->subfield('020','c')) {
+      # 	$field952->add_subfields('g' => $field020c);
+      # }
+        
+        # h = Serial Enumeration / chronology	
+      # See: t
+        
+      # j = Shelving control number	
+      # STACK
+      
+      # l = Total Checkouts	
   
-  		# s = Date last checked out	
+      # m = Total Renewals	
   
-  		# t = Copy number	
-		if ($itemcounter) {
-	    		$field952->add_subfields('t' => $itemcounter);
-		}
-
-		$itemcounter++;
-  
-  		# u = Uniform Resource Identifier	
-  
-  		# v = Cost, replacement price
-		# decimal number, no currency symbol
-  
-  		# w = Price effective from
-		# YYYY-MM-DD 
-  
-  		# x = Non-public note
-  
-  		# y = Koha item type
-		# coded value, required field for circulation 	 
-		# Coded value, must be defined in System Administration > Item types and Circulation Codes
-		# FIXME Dummy default, for now
-		$field952->add_subfields('y' => 'X');
-		
-  		# z = Public note
-  
-  		# 0 = Withdrawn status
-  		# WITHDRAWN
-  
-  		# 1 = Lost status
-  		# LOST  	0 
-  		# LOST 	1 	Lost 
-  		# LOST 	2 	Long Overdue (Lost) 
-  		# LOST 	3 	Lost and Paid For
-  		# LOST 	4 	Missing
-		# 099q = Tapt
-		# 099q = Savnet
-		# 099q = Hevdet innlevert
-		# if (my $field099q = $field099->subfield('q')) {
-		#   if ($field099q eq 'Tapt') {
-		#     $field952->add_subfields('1' => 1);
-		#   } elsif ($field099q eq 'Savnet') {
-		#   	$field952->add_subfields('1' => 4);
-		#   } elsif ($field099q eq 'Hevdet innlevert') {
-		#   	$field952->add_subfields('1' => 2);
-		#   }
-  		# }
-  
-  		# 2 = Source of classification or shelving scheme
-  		# cn_source
-  		# Values are in class_source.cn_source
-  		# See also 942$2
-  		# If 090c starts with three digits we count this as dcc-based scheme
-  		if ($record->field('090') && $record->field('090')->subfield('c')) {
-  			my $field096a = $record->field('090')->subfield('c');
-  			if ($field096a =~ m/^[0-9]{3,}.*/) {
-  				$field952->add_subfields('2' => 'ddc');
-  			} else {
-  				$field952->add_subfields('2' => 'z');
-  			}
-  		}
-  
-  		# 3 = Materials specified (bound volume or other part)
-  
-  		# 4 = Damaged status
-  		# DAMAGED  	0  	
-	        # DAMAGED 	1 	Damaged 	 
-  
-  		# 5 = Use restrictions
-  		# RESTRICTED  	0  	
-        	# RESTRICTED 	1 	Restricted Access
-		# 099q = Til internt bruk
-  
-  		# 6 = Koha normalized classification for sorting
-  
-  		# 7 = Not for loan	
-  		# NOT_LOAN
-        	# 099q = Til internt bruk
-		# 099q = Kassert
-			
-  		# 8 = Collection code	
-  		# CCODE
-  
-  		# 9 = Koha itemnumber (autogenerated)
-  		
-  		# Add this 952 field to the record
-  		$record->append_fields($field952);
+      # n = Total Holds	
+      
+      # o = Full call number 
+      my $firstpart = '';
+      my $secondpart = '';
+      if ($record->field('090') && $record->field('090')->subfield('c')) {
+        $firstpart = $record->field('090')->subfield('c');
+      }
+      if ($record->field('090') && $record->field('090')->subfield('d')) {
+        $secondpart = ' ' . $record->field('090')->subfield('d');
+      }
+      # Assemble the call number
+      $field952->add_subfields('o' => $firstpart . $secondpart);
       
       
-
-		} # End of field $850 iteration
-
+      # p = Barcode
+      # max 20 characters 
+      # FIXME Make this less inefficient by not doing it once for every item
+      
+      
+      # Get the 7 first difits from 001
+      my $titlenumber = substr $field001, 0, 7;
+      # Assemble the barcode
+      $field952->add_subfields('p' => '0301' . $titlenumber . sprintf("%03d", $itemcounter));
+  
+        # q = Checked out
+    
+        # r = Date last seen 
+    
+        # s = Date last checked out	
+    
+        # t = Copy number	
+      if ($itemcounter) {
+            $field952->add_subfields('t' => $itemcounter);
+      }
+  
+      $itemcounter++;
+    
+        # u = Uniform Resource Identifier	
+    
+        # v = Cost, replacement price
+      # decimal number, no currency symbol
+    
+        # w = Price effective from
+      # YYYY-MM-DD 
+    
+        # x = Non-public note
+    
+        # y = Koha item type
+      # coded value, required field for circulation 	 
+      # Coded value, must be defined in System Administration > Item types and Circulation Codes
+      # FIXME Dummy default, for now
+      $field952->add_subfields('y' => 'X');
+      
+        # z = Public note
+    
+        # 0 = Withdrawn status
+        # WITHDRAWN
+    
+        # 1 = Lost status
+        # LOST  	0 
+        # LOST 	1 	Lost 
+        # LOST 	2 	Long Overdue (Lost) 
+        # LOST 	3 	Lost and Paid For
+        # LOST 	4 	Missing
+      # 099q = Tapt
+      # 099q = Savnet
+      # 099q = Hevdet innlevert
+      # if (my $field099q = $field099->subfield('q')) {
+      #   if ($field099q eq 'Tapt') {
+      #     $field952->add_subfields('1' => 1);
+      #   } elsif ($field099q eq 'Savnet') {
+      #   	$field952->add_subfields('1' => 4);
+      #   } elsif ($field099q eq 'Hevdet innlevert') {
+      #   	$field952->add_subfields('1' => 2);
+      #   }
+        # }
+    
+        # 2 = Source of classification or shelving scheme
+        # cn_source
+        # Values are in class_source.cn_source
+        # See also 942$2
+        # If 090c starts with three digits we count this as dcc-based scheme
+        if ($record->field('090') && $record->field('090')->subfield('c')) {
+          my $field096a = $record->field('090')->subfield('c');
+          if ($field096a =~ m/^[0-9]{3,}.*/) {
+            $field952->add_subfields('2' => 'ddc');
+          } else {
+            $field952->add_subfields('2' => 'z');
+          }
+        }
+    
+        # 3 = Materials specified (bound volume or other part)
+    
+        # 4 = Damaged status
+        # DAMAGED  	0  	
+            # DAMAGED 	1 	Damaged 	 
+    
+        # 5 = Use restrictions
+        # RESTRICTED  	0  	
+            # RESTRICTED 	1 	Restricted Access
+      # 099q = Til internt bruk
+    
+        # 6 = Koha normalized classification for sorting
+    
+        # 7 = Not for loan	
+        # NOT_LOAN
+            # 099q = Til internt bruk
+      # 099q = Kassert
+        
+        # 8 = Collection code	
+        # CCODE
+    
+        # 9 = Koha itemnumber (autogenerated)
+        
+      # Add this 952 field to the record
+      $record->append_fields($field952);
+    } # End of field $850 iteration
+  } else {
+    # No $850? create dummy
+    my $field952 = MARC::Field->new('952', '', '', 'a' => 'fdum', 'b' => 'fdum'); 
+    # Add this 952 field to the record
+    $record->append_fields($field952);
+  }  
+  
+  
+  
   # $999 biblioitemnumber
   
-  my $faen = MARC::Field->new('999', '', '', 'd' => $record->field('001')->data() );
-	$record->append_fields($faen);
+  my $field999 = MARC::Field->new('999', '', '', 'd' => $field001 );
+	$record->append_fields($field999);
   
   $itemcounter = 1;
 	
