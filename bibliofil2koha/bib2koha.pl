@@ -20,7 +20,7 @@ my ($input_file, $ex_file, $limit) = get_options();
  my $csv = Text::CSV_XS->new ({ binary => 1 }) or
      die "Cannot use CSV: ".Text::CSV->error_diag ();
 
-#open file
+#open csv file
 open my $FH, "<:encoding(utf8)", "$ex_file" or die "$ex_file: $!";
 
 my %books;
@@ -93,17 +93,17 @@ my %item_types = (
   "fd" =>  "Reversal_film" 
 );
 
-# Da loop!
+# LOOP RECORDS
 while (my $record = $batch->next()) {
 
   $rec_count++;
   
-  #get all 000s
   my $field001 = $record->field('001')->data();
 
+  # BUILD FIELD 942
   my $field942 = MARC::Field->new(942, ' ', ' ', 'c' => '');
-    # stupid MARC::Field requires subfield on creation, so deletes immediately after
-    $field942->delete_subfield('code' => 'c');                  
+  # stupid MARC::Field requires subfield on creation, so deletes immediately after
+  $field942->delete_subfield('code' => 'c');                  
      
 	# $942c	Koha [default] item type
   if ($record->subfield('019', 'b')) {
@@ -144,55 +144,15 @@ while (my $record = $batch->next()) {
 	# Add this field to the record
 	$record->append_fields($field942);
 			
-	# BUILD FIELD 952
-  my $field952 = MARC::Field->new('952', '', '', 'a' => '');
-    # stupid MARC::Field requires subfield on creation, so deletes immediately after
-     $field952->delete_subfield('code' => 'a');
-     
-  # o = Full call number 
-  my $firstpart = '';
-  my $secondpart = '';
-  if ($record->field('090') && $record->field('090')->subfield('c')) {
-    $firstpart = $record->field('090')->subfield('c');
-  }
-  if ($record->field('090') && $record->field('090')->subfield('d')) {
-    $secondpart = ' ' . $record->field('090')->subfield('d');
-  }
-  # Assemble the call number
-  $field952->add_subfields('o' => $firstpart . $secondpart);
-  
-      
-  # 2 = Source of classification or shelving scheme
-  # cn_source
-  # Values are in class_source.cn_source
-  # See also 942$2
-  # If 090c starts with three digits we count this as dcc-based scheme
-  if ($record->field('090') && $record->field('090')->subfield('c')) {
-    my $field096a = $record->field('090')->subfield('c');
-    if ($field096a =~ m/^[0-9]{3,}.*/) {
-      $field952->add_subfields('2' => 'ddc');
-    } else {
-      $field952->add_subfields('2' => 'z');
-    }
-  }
-  
-  # 952y Item type
-  if ($record->subfield('019', 'b')) {
-
-		foreach my $t (split(',', $record->subfield('019', 'b'))) {
-      if ( exists $item_types{$t} ) {
-        $field952->add_subfields('y' => $item_types{$t});
-      }
-    }
-	} else {
-    $field952->add_subfields('y' => 'X');
-  }
-    
+  # BUILD FIELD 952    
   # loop though biblio items from csv hash and populate $952 biblioitems
   if ($books{ int($field001)} ) {
     my $book = $books{ int($field001)};
     foreach my $tnr ( @{$book} ) {
-      $field952->add_subfields('a' => $tnr->[2]);   # a) owner
+      
+      # Holding data
+      my $field952 = MARC::Field->new('952', '', '', 'a' => $tnr->[2]);
+      
       $field952->add_subfields('b' => $tnr->[2]);                         # b) holder
       if ($tnr->[3] ne "") {
         $field952->add_subfields('c' => $tnr->[3]);                       # c) shelf location
@@ -200,11 +160,51 @@ while (my $record = $batch->next()) {
       $field952->add_subfields('p' => $tnr->[4]);                         # p) barcode
       $field952->add_subfields('t' => $tnr->[1]);                         # t) copy
       
+      # 952y Item type
+      if ($record->subfield('019', 'b')) {
+
+        foreach my $t (split(',', $record->subfield('019', 'b'))) {
+          if ( exists $item_types{$t} ) {
+            $field952->add_subfields('y' => $item_types{$t});
+          }
+        }
+      } else {
+        $field952->add_subfields('y' => 'X');
+      }
+
+      # o = Full call number 
+      my $firstpart = '';
+      my $secondpart = '';
+      if ($record->field('090') && $record->field('090')->subfield('c')) {
+        $firstpart = $record->field('090')->subfield('c');
+      }
+      if ($record->field('090') && $record->field('090')->subfield('d')) {
+        $secondpart = ' ' . $record->field('090')->subfield('d');
+      }
+      # Assemble the call number
+      $field952->add_subfields('o' => $firstpart . $secondpart);
+      
+          
+      # 2 = Source of classification or shelving scheme
+      # cn_source
+      # Values are in class_source.cn_source
+      # See also 942$2
+      # If 090c starts with three digits we count this as dcc-based scheme
+      if ($record->field('090') && $record->field('090')->subfield('c')) {
+        my $field096a = $record->field('090')->subfield('c');
+        if ($field096a =~ m/^[0-9]{3,}.*/) {
+          $field952->add_subfields('2' => 'ddc');
+        } else {
+          $field952->add_subfields('2' => 'z');
+        }
+      }
+     
+      # APPEND 952
       $record->append_fields($field952);
     }
   }
   
-  # $999 biblioitemnumber
+  # $999 BIBLIOITEMNUMBER
   
   my $field999 = MARC::Field->new('999', '', '', 'd' => int($field001) );
 	$record->append_fields($field999);
