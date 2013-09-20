@@ -7,7 +7,7 @@ use MARC::Record;
 use MARC::Field;
 use Getopt::Long;
 use Pod::Usage;
-use strict;
+#use strict;
 use warnings;
 use Data::Dump 'dump';
 
@@ -156,31 +156,8 @@ while (my $record = $batch->next()) {
     my $itemcounter = 1;
     foreach my $field850 (@field850s) {
     
-      # Comments below are from 
-      # http://wiki.koha-community.org/wiki/Holdings_data_fields_%289xx%29
-    
-      # Create field 952, with a = "Permanent location"
-      # Authorized value: branches
-      # owning library
-      # Code must be defined in System Administration > Libraries, Branches and Groups
-      my $field850a = '';
-      if ($field850->subfield('a')) {
-        $field850a = $field850->subfield('a');
-      } else {
-        next;
-      }
-      my $field952 = MARC::Field->new('952', '', '', 'a' => $field850a);
-  
-      # Get more info for 952, and add subfields
-          
-      # b = Current location
-      # Authorized value: branches
-      # branchcode	 
-      # holding library (usu. the same as 952$a )
-      $field952->add_subfields('b' => $field850a);
-          
-      # c = Shelving location
-      $field952->add_subfields('c' => 'GEN');
+
+     $field952->add_subfields('c' => 'GEN');
         
       # o = Full call number 
       my $firstpart = '';
@@ -195,19 +172,6 @@ while (my $record = $batch->next()) {
       $field952->add_subfields('o' => $firstpart . $secondpart);
       
       
-      # p = Barcode
-      # Get the 7 first difits from 001
-
-      my $titlenumber = substr $field001, 0, 7;
-      # Assemble the barcode
-      $field952->add_subfields('p' => '0301' . $titlenumber . sprintf("%03d", $itemcounter));
-  
-      # t = Copy number	
-      if ($itemcounter) {
-            $field952->add_subfields('t' => $itemcounter);
-      }
-  
-      $itemcounter++;
     
       # FIXME Dummy default, for now
       $field952->add_subfields('y' => 'X');
@@ -231,30 +195,21 @@ while (my $record = $batch->next()) {
     
     } # End of field $850 iteration
   
-  } else {
-  
-    # No $850? create dummy
-    
-    my $field952 = MARC::Field->new('952', '', '', 'a' => 'fdum', 'b' => 'fdum'); 
-    
-    # Add this 952 field to the record
-    $record->append_fields($field952);
-  }  
+  } 
 =cut
-  # loop though biblio items form csv hash and populate $952 biblioitems
+  # loop though biblio items from csv hash and populate $952 biblioitems
   if ($books{ int($field001)} ) {
-    foreach $titlenumber (0..books{ int($field001) }-1 ) {
-      foreach $copy (0..$titlenumber) { 
-        dump $copy;
-        my $field952 = MARC::Field->new('952', '', '', 'a' => $copy[2]);   # a) owner
-        $field952->add_subfields('b' => $_[2]);                         # b) holder
-        $field952->add_subfields('c' => $_[3]);                         # c) shelf location
-        $field952->add_subfields('p' => $_[4]);                         # p) barcode
-        $field952->add_subfields('t' => $_[1]);                         # t) copy
-        
-        $record->append_fields($field952);
+    my $book = $books{ int($field001)};
+    foreach my $tnr ( @{$book} ) {
+      my $field952 = MARC::Field->new('952', '', '', 'a' => $tnr->[2]);   # a) owner
+      $field952->add_subfields('b' => $tnr->[2]);                         # b) holder
+      if ($tnr->[3] ne "") {
+        $field952->add_subfields('c' => $tnr->[3]);                       # c) shelf location
       }
+      $field952->add_subfields('p' => $tnr->[4]);                         # p) barcode
+      $field952->add_subfields('t' => $tnr->[1]);                         # t) copy
       
+      $record->append_fields($field952);
     }
   }
   
