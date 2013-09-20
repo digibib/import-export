@@ -180,7 +180,7 @@ while (my $record = $batch->next()) {
   if ($books{ int($field001)} ) {
     my $book = $books{ int($field001)};
     foreach my $tnr ( @{$book} ) {
-      $field952->add_subfields('952', '', '', 'a' => $tnr->[2]);   # a) owner
+      $field952->add_subfields('a' => $tnr->[2]);   # a) owner
       $field952->add_subfields('b' => $tnr->[2]);                         # b) holder
       if ($tnr->[3] ne "") {
         $field952->add_subfields('c' => $tnr->[3]);                       # c) shelf location
