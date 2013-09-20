@@ -175,6 +175,18 @@ while (my $record = $batch->next()) {
       $field952->add_subfields('2' => 'z');
     }
   }
+  
+  # 952y Item type
+  if ($record->subfield('019', 'b')) {
+
+		foreach my $t (split(',', $record->subfield('019', 'b'))) {
+      if ( exists $item_types{$t} ) {
+        $field952->add_subfields('y' => $item_types{$t});
+      }
+    }
+	} else {
+    $field952->add_subfields('y' => 'X');
+  }
     
   # loop though biblio items from csv hash and populate $952 biblioitems
   if ($books{ int($field001)} ) {
