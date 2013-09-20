@@ -7,9 +7,8 @@ use MARC::Record;
 use MARC::Field;
 use Getopt::Long;
 use Pod::Usage;
-#use strict;
 use warnings;
-use Data::Dump 'dump';
+#use Data::Dump 'dump';
 
 use Text::CSV_XS;
 use autodie;
@@ -35,9 +34,6 @@ while (my $row = $csv->getline ($FH) ) {
 $csv->eof or $csv->error_diag ();
 close $FH;
 
-#print Dumper(@rows);
-#print Dumper($books);
-        
 # Check that the file exists
 if (!-e $input_file) {
   print "The file $input_file does not exist...\n";
@@ -51,6 +47,7 @@ $batch->strict_off();
 
 my $rec_count = 0;
 
+# Item types hash, used in 942c and 952y
 my %item_types = (
   "ab" =>  "Atlas",
   "ee" =>  "DVD",
@@ -105,14 +102,14 @@ while (my $record = $batch->next()) {
   my $field001 = $record->field('001')->data();
 
   my $field942 = MARC::Field->new(942, ' ', ' ', 'c' => '');
-     $field942->delete_subfield('code' => 'c');
+    # stupid MARC::Field requires subfield on creation, so deletes immediately after
+    $field942->delete_subfield('code' => 'c');                  
      
-	# c	Koha [default] item type
+	# $942c	Koha [default] item type
   if ($record->subfield('019', 'b')) {
 
 		foreach my $t (split(',', $record->subfield('019', 'b'))) {
       if ( exists $item_types{$t} ) {
-        #print "$item_types{$t}\n";
         $field942->add_subfields('c' => $item_types{$t});
       }
     }
@@ -131,7 +128,7 @@ while (my $record = $batch->next()) {
 		$field942->add_subfields('m' => $field096d); 
 	}
 	
-		# 2	Source of classification or shelving scheme
+  # 2	Source of classification or shelving scheme
 	# Values are in class_sources.cn_source
 	# See also 952$2
 	# If 096a starts with three digits we count this as dcc-based scheme
@@ -143,60 +140,42 @@ while (my $record = $batch->next()) {
 	    $field942->add_subfields('2' => 'z');
 	  }
 	}
-	# 6	Koha normalized classification for sorting
 	
 	# Add this field to the record
 	$record->append_fields($field942);
 			
 	# BUILD FIELD 952
-=comment	
+  my $field952 = MARC::Field->new('952', '', '', 'a' => '');
+    # stupid MARC::Field requires subfield on creation, so deletes immediately after
+     $field952->delete_subfield('code' => 'a');
+     
+  # o = Full call number 
+  my $firstpart = '';
+  my $secondpart = '';
+  if ($record->field('090') && $record->field('090')->subfield('c')) {
+    $firstpart = $record->field('090')->subfield('c');
+  }
+  if ($record->field('090') && $record->field('090')->subfield('d')) {
+    $secondpart = ' ' . $record->field('090')->subfield('d');
+  }
+  # Assemble the call number
+  $field952->add_subfields('o' => $firstpart . $secondpart);
   
-  if ($record->field('850')) {
-    my @field850s = $record->field('850');
-    my $itemcounter = 1;
-    foreach my $field850 (@field850s) {
-    
-
-     $field952->add_subfields('c' => 'GEN');
-        
-      # o = Full call number 
-      my $firstpart = '';
-      my $secondpart = '';
-      if ($record->field('090') && $record->field('090')->subfield('c')) {
-        $firstpart = $record->field('090')->subfield('c');
-      }
-      if ($record->field('090') && $record->field('090')->subfield('d')) {
-        $secondpart = ' ' . $record->field('090')->subfield('d');
-      }
-      # Assemble the call number
-      $field952->add_subfields('o' => $firstpart . $secondpart);
       
-      
+  # 2 = Source of classification or shelving scheme
+  # cn_source
+  # Values are in class_source.cn_source
+  # See also 942$2
+  # If 090c starts with three digits we count this as dcc-based scheme
+  if ($record->field('090') && $record->field('090')->subfield('c')) {
+    my $field096a = $record->field('090')->subfield('c');
+    if ($field096a =~ m/^[0-9]{3,}.*/) {
+      $field952->add_subfields('2' => 'ddc');
+    } else {
+      $field952->add_subfields('2' => 'z');
+    }
+  }
     
-      # FIXME Dummy default, for now
-      $field952->add_subfields('y' => 'X');
-      
-      # 2 = Source of classification or shelving scheme
-      # cn_source
-      # Values are in class_source.cn_source
-      # See also 942$2
-      # If 090c starts with three digits we count this as dcc-based scheme
-      if ($record->field('090') && $record->field('090')->subfield('c')) {
-        my $field096a = $record->field('090')->subfield('c');
-        if ($field096a =~ m/^[0-9]{3,}.*/) {
-          $field952->add_subfields('2' => 'ddc');
-        } else {
-          $field952->add_subfields('2' => 'z');
-        }
-      }
-    
-      # Add this 952 field to the record
-      $record->append_fields($field952);
-    
-    } # End of field $850 iteration
-  
-  } 
-=cut
   # loop though biblio items from csv hash and populate $952 biblioitems
   if ($books{ int($field001)} ) {
     my $book = $books{ int($field001)};
@@ -222,13 +201,6 @@ while (my $record = $batch->next()) {
   
   if ($limit && ($rec_count == $limit)) { last; }
 }
-
-#print "\n$rec_count records processed\n";
-#print "----------------------------\n";
-# make sure there weren't any problems.
-#if ( my @warnings = $batch->warnings() ) {
-#       print "\nWarnings were detected!\n", @warnings;
-#   }
 
 sub get_options {
 
