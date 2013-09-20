@@ -7,9 +7,37 @@ use MARC::Record;
 use MARC::Field;
 use Getopt::Long;
 use Pod::Usage;
+use strict;
+use warnings;
+use Data::Dump 'dump';
 
-my ($input_file, $limit) = get_options();
+use Text::CSV_XS;
+use autodie;
 
+my ($input_file, $ex_file, $limit) = get_options();
+
+ my @rows; # array that will store csv values
+
+ my $csv = Text::CSV_XS->new ({ binary => 1 }) or
+     die "Cannot use CSV: ".Text::CSV->error_diag ();
+
+#open file
+open my $FH, "<:encoding(utf8)", "$ex_file" or die "$ex_file: $!";
+
+my %books;
+#read file in while loop
+
+while (my $row = $csv->getline ($FH) ) {
+      #{push @rows, $row;};
+      push(@{ $books{$row-> [0]} }, $row);
+   }
+
+$csv->eof or $csv->error_diag ();
+close $FH;
+
+#print Dumper(@rows);
+#print Dumper($books);
+        
 # Check that the file exists
 if (!-e $input_file) {
   print "The file $input_file does not exist...\n";
@@ -121,7 +149,8 @@ while (my $record = $batch->next()) {
 	$record->append_fields($field942);
 			
 	# BUILD FIELD 952
-	
+=comment	
+  
   if ($record->field('850')) {
     my @field850s = $record->field('850');
     my $itemcounter = 1;
@@ -211,6 +240,23 @@ while (my $record = $batch->next()) {
     # Add this 952 field to the record
     $record->append_fields($field952);
   }  
+=cut
+  # loop though biblio items form csv hash and populate $952 biblioitems
+  if ($books{ int($field001)} ) {
+    foreach $titlenumber (0..books{ int($field001) }-1 ) {
+      foreach $copy (0..$titlenumber) { 
+        dump $copy;
+        my $field952 = MARC::Field->new('952', '', '', 'a' => $copy[2]);   # a) owner
+        $field952->add_subfields('b' => $_[2]);                         # b) holder
+        $field952->add_subfields('c' => $_[3]);                         # c) shelf location
+        $field952->add_subfields('p' => $_[4]);                         # p) barcode
+        $field952->add_subfields('t' => $_[1]);                         # t) copy
+        
+        $record->append_fields($field952);
+      }
+      
+    }
+  }
   
   # $999 biblioitemnumber
   
@@ -233,11 +279,13 @@ sub get_options {
 
   # Options
   my $input_file = '';
+  my $ex_file = '';
   my $limit = '';
   my $help = '';
   
   GetOptions (
     'i|infile=s' => \$input_file, 
+    'e|exfile=s' => \$ex_file, 
     'l|limit=i' => \$limit,
     'h|?|help'  => \$help
   );
@@ -245,7 +293,7 @@ sub get_options {
   pod2usage(-exitval => 0) if $help;
   pod2usage( -msg => "\nMissing Argument: -i, --infile required\n", -exitval => 1) if !$input_file;
 
-  return ($input_file, $limit);
+  return ($input_file, $ex_file, $limit);
 
 }
 
@@ -266,6 +314,10 @@ bibliofil2koha.pl - Simple move from bib to koha posts
 =item B<-i, --infile>
 
 Name of the MARC file to be read.
+
+=item B<-e, --infile>
+
+Name of the Items CSV file to be read.
 
 =item B<-l, --limit>
 
