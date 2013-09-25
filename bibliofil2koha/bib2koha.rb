@@ -100,7 +100,7 @@ reader.each do | record |
     writer.write("\n")
     writer.write(record)
   else
-    puts record
+    puts record.to_xml
   end
 end
 
