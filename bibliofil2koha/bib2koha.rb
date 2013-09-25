@@ -59,7 +59,7 @@ reader.each do | record |
   if $recordlimit then break if count > $recordlimit end
 
   # BUILD FIELD 942  
-  if record['019']['b']
+  if record['019'] && record['019']['b']
 
     # item type to uppercase $942c
 		record['019']['b'].split(',').each do | itemtype |
@@ -82,7 +82,7 @@ reader.each do | record |
       field952.append(MARC::Subfield.new('t', copy["exnr"]))      # exemplar number
       
       # item type to uppercase $952y
-      if record['019']['b']
+      if record['019'] && record['019']['b']
         record['019']['b'].split(',').each do | itemtype |
           field952.append(MARC::Subfield.new('y', itemtype.upcase))
         end
