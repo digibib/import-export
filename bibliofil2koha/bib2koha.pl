@@ -9,8 +9,6 @@ use Getopt::Long;
 use Pod::Usage;
 use warnings;
 use MARC::File::XML ( BinaryEncoding => 'bytes', RecordFormat => 'USMARC' );
-use MARC::Charset 'marc8_to_utf8';
-MARC::Charset->ignore_errors(1); # ignore errors
 
 # prepare STDOUT for utf8
 binmode(STDOUT, 'bytes');
