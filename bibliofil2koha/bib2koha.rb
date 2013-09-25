@@ -66,7 +66,7 @@ reader.each do | record |
       record.append(MARC::DataField.new('942', ' ',  ' ', ['c', itemtype.upcase]))
     end
   else
-    record.append(MARC::DataField.new('942', ' ',  ' ', ['c', X]))
+    record.append(MARC::DataField.new('942', ' ',  ' ', ['c', 'X']))
   end
 
   # BUILD FIELD 952   
