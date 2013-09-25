@@ -46,9 +46,9 @@ CSV.foreach( File.open($ex_file) ) do | row |
 end
 
 if $output_file
-  writer = MARC::XMLWriter.new($output_file)
-  writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
-  writer.write("<collection>\n")
+  output = File.open($output_file, "w+")
+  output << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+  output << "<collection>\n"
 end
 
   
@@ -97,15 +97,11 @@ reader.each do | record |
   # BUILD FIELD 999
   record.append(MARC::DataField.new('999', ' ',  ' ', ['d', tnr]))
   if $output_file
-    writer.write("\n")
-    writer.write(record)
+    output << record.to_xml
+    output << "\n"
   else
     puts record.to_xml
   end
 end
 
-writer.write("</collection>\n") if $output_file
- 
-if $output_file
-  writer.close()
-end
+output << "</collection>\n" if $output_file
