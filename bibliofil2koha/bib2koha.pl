@@ -8,6 +8,13 @@ use MARC::Field;
 use Getopt::Long;
 use Pod::Usage;
 use warnings;
+use MARC::File::XML ( BinaryEncoding => 'bytes', RecordFormat => 'USMARC' );
+use MARC::Charset 'marc8_to_utf8';
+MARC::Charset->ignore_errors(1); # ignore errors
+
+# prepare STDOUT for utf8
+binmode(STDOUT, 'bytes');
+
 #use Data::Dump 'dump';
 
 use Text::CSV_XS;
@@ -20,19 +27,22 @@ my ($input_file, $ex_file, $limit) = get_options();
  my $csv = Text::CSV_XS->new ({ binary => 1 }) or
      die "Cannot use CSV: ".Text::CSV->error_diag ();
 
-#open csv file
-open my $FH, "<:encoding(utf8)", "$ex_file" or die "$ex_file: $!";
-
-my %books;
-#read file in while loop
-
-while (my $row = $csv->getline ($FH) ) {
-      #{push @rows, $row;};
-      push(@{ $books{$row-> [0]} }, $row);
-   }
-
-$csv->eof or $csv->error_diag ();
-close $FH;
+# slurp csv to $books hash if -e ex_file
+if ($ex_file) {
+  #open csv file
+  open my $FH, "<:encoding(utf8)", "$ex_file" or die "$ex_file: $!";
+  
+  my %books;
+  #read file in while loop
+  
+  while (my $row = $csv->getline ($FH) ) {
+        #{push @rows, $row;};
+        push(@{ $books{$row-> [0]} }, $row);
+     }
+  
+  $csv->eof or $csv->error_diag ();
+  close $FH;
+}
 
 # Check that the file exists
 if (!-e $input_file) {
@@ -95,7 +105,7 @@ my %item_types = (
 
 # LOOP RECORDS
 while (my $record = $batch->next()) {
-
+  
   $rec_count++;
   
   my $field001 = $record->field('001')->data();
@@ -209,7 +219,8 @@ while (my $record = $batch->next()) {
   my $field999 = MARC::Field->new('999', '', '', 'd' => int($field001) );
 	$record->append_fields($field999);
   
-  print $record->as_usmarc();
+  #print $record->as_usmarc();
+  print $record->as_xml();
   
   if ($limit && ($rec_count == $limit)) { last; }
 }
