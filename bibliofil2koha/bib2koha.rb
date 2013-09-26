@@ -54,7 +54,7 @@ end
   
 reader.each do | record |
   
-  tnr = record['001'].value.to_i.to_s
+  tnr = record['001'].value.to_i
   count += 1
   if $recordlimit then break if count > $recordlimit end
 
@@ -72,7 +72,7 @@ reader.each do | record |
   # BUILD FIELD 952   
   
   # add exemplars and holding info from csv hash
-  if exemplars["tnr" => tnr] 
+  if exemplars[tnr] 
     exemplars[tnr].each do |copy|
       field952 = MARC::DataField.new('952', ' ',  ' ')
       field952.append(MARC::Subfield.new('a', copy["branch"]))    # owner
@@ -95,7 +95,7 @@ reader.each do | record |
   end
 
   # BUILD FIELD 999
-  record.append(MARC::DataField.new('999', ' ',  ' ', ['d', tnr]))
+  record.append(MARC::DataField.new('999', ' ',  ' ', ['d', tnr.to_s]))
   if $output_file
     output << record.to_xml
     output << "\n"
