@@ -89,7 +89,12 @@ reader.each do | record |
       else
         field952.append(MARC::Subfield.new('y', 'X'))   # dummy item type
       end
-      
+
+      # set item callnumber
+      if record['090'] && record['090']['c']
+        field952.append(MARC::Subfield.new('o'), record['090']['c'])
+      end
+
       record.append(field952)
     end
   end
