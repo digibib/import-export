@@ -131,11 +131,11 @@ end
 reader.each do | item |
 
   count += 1
-  if $recordlimit then break if count > $recordlimit end
+  #if $recordlimit then break if count > $recordlimit end
   
   # jump over random no of records if randomize is set
 
-  if $randomize
+  if $recordlimit
     next unless count == @current 
   end
 
