@@ -104,6 +104,8 @@ def processRecord(record)
 
   # BUILD FIELD 999
   record.append(MARC::DataField.new('999', ' ',  ' ', ['d', tnr.to_s]))
+
+  @current = @randomNumbers.shift if $randomize
   record
 end
 
@@ -124,6 +126,7 @@ end
 
 @randomNumbers = createRandomNumbers if $randomize
 @exemplars     = createExamplars     if $ex_file
+@current       = @randomNumbers.shift
 
 reader.each do | item |
 
@@ -131,8 +134,9 @@ reader.each do | item |
   if $recordlimit then break if count > $recordlimit end
   
   # jump over random no of records if randomize is set
+
   if $randomize
-    next until count = @randomNumbers.shift
+    next unless count == @current 
   end
 
   record = processRecord(item)
