@@ -75,8 +75,8 @@ def processRecord(record)
   # BUILD FIELD 952   
   
   # add exemplars and holding info from csv hash
-  if @examplars && @exemplars[tnr] 
-    @exemplars[tnr].each do |copy|
+  if @@exemplars && @@exemplars[tnr] 
+    @@exemplars[tnr].each do |copy|
       field952 = MARC::DataField.new('952', ' ',  ' ')
       field952.append(MARC::Subfield.new('a', copy["branch"]))    # owner
       field952.append(MARC::Subfield.new('b', copy["branch"]))    # holder
@@ -105,7 +105,7 @@ def processRecord(record)
   # BUILD FIELD 999
   record.append(MARC::DataField.new('999', ' ',  ' ', ['d', tnr.to_s]))
 
-  @current = @randomNumbers.shift if $randomize
+  @@current = @@randomNumbers.shift if $randomize
   record
 end
 
@@ -124,9 +124,9 @@ if $output_file
   output << "<collection>\n"
 end
 
-@randomNumbers = createRandomNumbers if $randomize
-@exemplars     = createExamplars     if $ex_file
-@current       = @randomNumbers.shift
+@@randomNumbers = createRandomNumbers   if $randomize
+@@current       = @@randomNumbers.shift if $randomize
+@@exemplars     = createExamplars       if $ex_file
 
 reader.each do | item |
 
