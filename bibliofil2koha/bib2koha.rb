@@ -36,7 +36,7 @@ end; }
 
 def createRandomNumbers
   totalrecords = 410000
-  limit= $recordlimit ||= totalrecords
+  limit = $recordlimit ||= totalrecords
   # create a random skip interval
   randomNumbers = []
   i = 0
@@ -95,7 +95,7 @@ def processRecord(record)
 
       # set item callnumber
       if record['090'] && record['090']['c']
-        field952.append(MARC::Subfield.new('o'), record['090']['c'])
+        field952.append(MARC::Subfield.new('o', record['090']['c']))
       end
 
       record.append(field952)
