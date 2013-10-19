@@ -21,7 +21,6 @@ def usage(s)
     $stderr.puts(" -r randomize (skip random number of records)\n")
     exit(2)
 end
-
 loop { case ARGV[0]
     when '-i' then ARGV.shift; $input_file = ARGV.shift
     when '-e' then ARGV.shift; $ex_file = ARGV.shift
@@ -35,11 +34,11 @@ loop { case ARGV[0]
 end; }
 
 def createRandomNumbers
-  totalrecords = 410000
+  totalrecords = 57
   limit = $recordlimit ||= totalrecords
   # create a random skip interval
   i = 0
-  randominterval = totalrecords / $recordlimit * 2  
+  randominterval = totalrecords / limit * 2  
   
   limit.times { @randomNumbers.push( i+= rand(randominterval) )}
 end
@@ -123,7 +122,7 @@ end
 count = 0
 
 # reading records from a batch file
-reader = MARC::Reader.new($input_file)
+reader = MARC::Reader.new($input_file, :external_encoding => "binary")
 
 #### 
 # PROCESS RECORDS
@@ -138,12 +137,14 @@ end
 reader.each do | item |
 
   count += 1
-  #if $recordlimit then break if count > $recordlimit end
   
   # jump over random no of records if randomize is set
 
-  if $recordlimit
+  if $randomize 
+    puts @currentRecord
     next unless count == @currentRecord
+  elsif $recordlimit
+    break if count > $recordlimit
   end
 
   record = processRecord(item)
