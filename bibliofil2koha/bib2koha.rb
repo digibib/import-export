@@ -30,7 +30,7 @@ loop { case ARGV[0]
     when '-r' then ARGV.shift; $randomize = true
     when /^-/ then usage("Unknown option: #{ARGV[0].inspect}")
     else
-      if !$input_file || !$ex_file then usage("Missing argument!\n") end
+      if !$input_file then usage("Missing argument!\n") end
     break
 end; }
 
@@ -38,23 +38,19 @@ def createRandomNumbers
   totalrecords = 410000
   limit = $recordlimit ||= totalrecords
   # create a random skip interval
-  randomNumbers = []
   i = 0
   randominterval = totalrecords / $recordlimit * 2  
   
-  limit.times { randomNumbers.push( i+= rand(randominterval) )}
-  randomNumbers
+  limit.times { @randomNumbers.push( i+= rand(randominterval) )}
 end
 
 def createExamplars
-  # Read CSV exemplars into hash
+  # Read CSV @exemplars into hash
   keys = ['tnr', 'exnr','branch','loc','barcode']
-  exemplars = {}
   CSV.foreach( File.open($ex_file) ) do | row |
     # append to Array within hash and create if new
-    (exemplars[row[0].to_i] ||= []) << Hash[ keys.zip(row) ]
+    (@exemplars[row[0].to_i] ||= []) << Hash[ keys.zip(row) ]
   end
-  exemplars
 end
 
 def processRecord(record)
@@ -74,9 +70,9 @@ def processRecord(record)
 
   # BUILD FIELD 952   
   
-  # add exemplars and holding info from csv hash
-  if @@exemplars && @@exemplars[tnr] 
-    @@exemplars[tnr].each do |copy|
+  # add @exemplars and holding info from csv hash
+  if @exemplars && @exemplars[tnr] 
+    @exemplars[tnr].each do |copy|
       field952 = MARC::DataField.new('952', ' ',  ' ')
       field952.append(MARC::Subfield.new('a', copy["branch"]))    # owner
       field952.append(MARC::Subfield.new('b', copy["branch"]))    # holder
@@ -105,8 +101,23 @@ def processRecord(record)
   # BUILD FIELD 999
   record.append(MARC::DataField.new('999', ' ',  ' ', ['d', tnr.to_s]))
 
-  @@current = @@randomNumbers.shift if $randomize
+  @currentRecord = @randomNumbers.shift if @randomNumbers
   record
+end
+
+#### 
+# INIT
+####
+
+if $randomize
+  @randomNumbers = []
+  createRandomNumbers 
+  @currentRecord = @randomNumbers.shift
+end
+
+if $ex_file
+  @exemplars = {}
+  createExamplars
 end
 
 count = 0
@@ -124,10 +135,6 @@ if $output_file
   output << "<collection>\n"
 end
 
-@@randomNumbers = createRandomNumbers   if $randomize
-@@current       = @@randomNumbers.shift if $randomize
-@@exemplars     = createExamplars       if $ex_file
-
 reader.each do | item |
 
   count += 1
@@ -136,7 +143,7 @@ reader.each do | item |
   # jump over random no of records if randomize is set
 
   if $recordlimit
-    next unless count == @current 
+    next unless count == @currentRecord
   end
 
   record = processRecord(item)
