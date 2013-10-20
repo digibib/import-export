@@ -34,7 +34,7 @@ loop { case ARGV[0]
 end; }
 
 def createRandomNumbers
-  totalrecords = 57
+  totalrecords = 410000
   limit = $recordlimit ||= totalrecords
   # create a random skip interval
   i = 0
@@ -141,7 +141,6 @@ reader.each do | item |
   # jump over random no of records if randomize is set
 
   if $randomize 
-    puts @currentRecord
     next unless count == @currentRecord
   elsif $recordlimit
     break if count > $recordlimit
