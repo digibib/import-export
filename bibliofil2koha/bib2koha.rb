@@ -122,7 +122,8 @@ end
 count = 0
 
 # reading records from a batch file
-reader = MARC::Reader.new($input_file, :external_encoding => "binary")
+reader = MARC::Reader.new($input_file)
+#reader = MARC::Reader.new($input_file, :external_encoding => "binary")
 
 #### 
 # PROCESS RECORDS
