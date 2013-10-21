@@ -153,11 +153,11 @@ reader.each do | item |
     next unless count == @currentRecord
   end
   
-  # stop when limit is reached
+  # decrease limit counters and stop when it reaches 0
   if $randomize 
-    break if count == $randomize
+    break if ($randomize -= 0) <= 0
   elsif $recordlimit
-    break if count == $recordlimit
+    break if ($recordlimit -= 0) <= 0
   end
 end
 
