@@ -18,7 +18,7 @@ def usage(s)
     $stderr.puts(" -e exemplar file must be CSV\n")
     $stderr.puts(" -o output_file file must be xml file\n")
     $stderr.puts(" -l [limit] stops processing after given number of records\n")
-    $stderr.puts(" -r randomize (skip random number of records)\n")
+    $stderr.puts(" -r [limit] pick random records with limit (random skipping)\n")
     exit(2)
 end
 loop { case ARGV[0]
@@ -26,7 +26,7 @@ loop { case ARGV[0]
     when '-e' then ARGV.shift; $ex_file = ARGV.shift
     when '-o' then ARGV.shift; $output_file = ARGV.shift
     when '-l' then ARGV.shift; $recordlimit = ARGV.shift.to_i # force integer
-    when '-r' then ARGV.shift; $randomize = true
+    when '-r' then ARGV.shift; $randomize = ARGV.shift.to_i # force integer
     when /^-/ then usage("Unknown option: #{ARGV[0].inspect}")
     else
       if !$input_file then usage("Missing argument!\n") end
@@ -34,13 +34,13 @@ loop { case ARGV[0]
 end; }
 
 def createRandomNumbers
+  return nil unless $randomize
   totalrecords = 410000
-  limit = $recordlimit ||= totalrecords
   # create a random skip interval
   i = 0
-  randominterval = totalrecords / limit * 2  
+  randominterval = totalrecords / $randomize * 2  
   
-  limit.times { @randomNumbers.push( i+= rand(randominterval) )}
+  $randomize.times { @randomNumbers.push( i+= rand(randominterval) )}
 end
 
 def createExamplars
@@ -138,14 +138,6 @@ reader.each do | item |
 
   count += 1
   
-  # jump over random no of records if randomize is set
-
-  if $randomize 
-    next unless count == @currentRecord
-  elsif $recordlimit
-    break if count > $recordlimit
-  end
-
   record = processRecord(item)
 
   if $output_file
@@ -155,6 +147,17 @@ reader.each do | item |
     puts record.to_xml
   end
 
+  # skip until next random no
+  if $randomize 
+    next unless count == @currentRecord
+  end
+  
+  # stop when limit is reached
+  if $randomize 
+    break if count == $randomize
+  elsif $recordlimit
+    break if count == $recordlimit
+  end
 end
 
 output << "</collection>\n" if $output_file
