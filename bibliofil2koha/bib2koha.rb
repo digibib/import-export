@@ -38,8 +38,8 @@ def createRandomNumbers
   totalrecords = 410000
   # create a random skip interval
   i = 0
-  randominterval = totalrecords / $randomize * 2  
-  
+  randominterval = totalrecords / $randomize * 2
+
   $randomize.times { @randomNumbers.push( i+= rand(randominterval) )}
 end
 
@@ -56,21 +56,18 @@ def processRecord(record)
 
   tnr = record['001'].value.to_i
 
-  # BUILD FIELD 942  
+  # BUILD FIELD 942
   if record['019'] && record['019']['b']
-
     # item type to uppercase $942c
-    record['019']['b'].split(',').each do | itemtype |
-      record.append(MARC::DataField.new('942', ' ',  ' ', ['c', itemtype.upcase]))
-    end
+    record.append(MARC::DataField.new('942', ' ',  ' ', ['c', record['019']['b'].upcase ]))
   else
     record.append(MARC::DataField.new('942', ' ',  ' ', ['c', 'X']))
   end
 
-  # BUILD FIELD 952   
-  
+  # BUILD FIELD 952
+
   # add @exemplars and holding info from csv hash
-  if @exemplars && @exemplars[tnr] 
+  if @exemplars && @exemplars[tnr]
     @exemplars[tnr].each do |copy|
       field952 = MARC::DataField.new('952', ' ',  ' ')
       field952.append(MARC::Subfield.new('a', copy["branch"]))    # owner
@@ -78,12 +75,10 @@ def processRecord(record)
       field952.append(MARC::Subfield.new('c', copy["loc"]))       # location
       field952.append(MARC::Subfield.new('p', copy["barcode"]))   # barcode
       field952.append(MARC::Subfield.new('t', copy["exnr"]))      # exemplar number
-      
+
       # item type to uppercase $952y
       if record['019'] && record['019']['b']
-        record['019']['b'].split(',').each do | itemtype |
-          field952.append(MARC::Subfield.new('y', itemtype.upcase))
-        end
+        field952.append(MARC::Subfield.new('y', record['019']['b'].upcase))
       else
         field952.append(MARC::Subfield.new('y', 'X'))   # dummy item type
       end
@@ -104,13 +99,13 @@ def processRecord(record)
   record
 end
 
-#### 
+####
 # INIT
 ####
 
 if $randomize
   @randomNumbers = []
-  createRandomNumbers 
+  createRandomNumbers
   @currentRecord = @randomNumbers.shift
 end
 
@@ -125,7 +120,7 @@ count = 0
 reader = MARC::Reader.new($input_file)
 #reader = MARC::Reader.new($input_file, :external_encoding => "binary")
 
-#### 
+####
 # PROCESS RECORDS
 ####
 
@@ -138,7 +133,7 @@ end
 reader.each do | item |
 
   count += 1
-  
+
   record = processRecord(item)
 
   if $output_file
@@ -149,12 +144,12 @@ reader.each do | item |
   end
 
   # skip until next random no
-  if $randomize 
+  if $randomize
     next unless count == @currentRecord
   end
-  
+
   # decrease limit counters and stop when it reaches 0
-  if $randomize 
+  if $randomize
     break if ($randomize -= 0) <= 0
   elsif $recordlimit
     break if ($recordlimit -= 0) <= 0
