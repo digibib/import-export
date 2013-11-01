@@ -1,15 +1,44 @@
+#!/usr/bin/env ruby
+# coding:utf-8
+
+require 'rubygems'
 require 'marc'
 
-# reading records from a batch file
-reader = MARC::Reader.new('helebasen.fixed.mrc')
-writer = MARC::XMLWriter.new('helebasen.fixed.xml')
-for record in reader
-  # print out field 245 subfield a
-  writer.write(record)
+# quit unless our script gets two command line arguments
+unless ARGV.length > 0
+  puts "Missing input file!"
+  puts "Usage: ruby marc2xml.rb InputFile.mrc [OutputFile.xml]\n"
+  exit
 end
 
-# writing a record as XML
-writer.close()
+# our input file should be the first command line arg
+input_file = ARGV[0]
 
-# encoding a record
-#MARC::Writer.encode(record) # or record.to_marc
+# our output file should be the second command line arg
+if ARGV[1]
+output_file = ARGV[1]
+writer = MARC::XMLWriter.new(output_file)
+end
+  
+  # reading records from a batch file
+  reader = MARC::Reader.new(input_file)
+
+output = open(output_file, "w+")
+output << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+output << "<collection>\n"
+
+reader.each do | record |
+  if ARGV.length == 2
+  writer.write(record)
+  # insert linefeed between each record
+  output << "\n"
+  end
+  #puts record.to_xml
+end
+
+output << "</collection>\n"
+ 
+if ARGV[1]
+  writer.close()
+end
+

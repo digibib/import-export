@@ -106,6 +106,7 @@ end
 if $randomize
   @randomNumbers = []
   createRandomNumbers
+  puts @randomNumbers
   @currentRecord = @randomNumbers.shift
 end
 
@@ -134,6 +135,20 @@ reader.each do | item |
 
   count += 1
 
+  # skip until next random no
+  if $randomize
+    next unless count == @currentRecord
+  end
+
+  # decrease limit counters and stop when it reaches 0
+  if $randomize
+    break if ($randomize -= 1) <= 0
+  elsif $recordlimit
+    break if ($recordlimit -= 1) <= 0
+  end
+
+  # ok - go ahead!
+
   record = processRecord(item)
 
   if $output_file
@@ -143,17 +158,6 @@ reader.each do | item |
     puts record.to_xml
   end
 
-  # skip until next random no
-  if $randomize
-    next unless count == @currentRecord
-  end
-
-  # decrease limit counters and stop when it reaches 0
-  if $randomize
-    break if ($randomize -= 0) <= 0
-  elsif $recordlimit
-    break if ($recordlimit -= 0) <= 0
-  end
 end
 
 output << "</collection>\n" if $output_file
