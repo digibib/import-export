@@ -10,8 +10,28 @@ else
   require "csv"
 end
 
-@patronrange = (1001..1018).to_a
-@barcodes    = File.readlines("500barcodes.txt")
+def usage(s)
+    $stderr.puts(s)
+    $stderr.puts("Usage: \n")
+    $stderr.puts("#{File.basename($0)} -e barcodes.txt -p patronarray [-o output_file.csv]\n")
+    $stderr.puts(" -b barcodes file must be on single lines\n")
+    $stderr.puts(" -p [patronarray] range of patron cards in format 1000-1020 \n")
+    exit(2)
+end
+loop { case ARGV[0]
+    when '-b' then ARGV.shift; $barcode_file = ARGV.shift
+    when '-p' then ARGV.shift; $patrons = ARGV.shift
+    when '-o' then ARGV.shift; $output_file = ARGV.shift
+    when /^-/ then usage("Unknown option: #{ARGV[0].inspect}")
+    else
+      if !$barcode_file || !$patrons then usage("Missing argument!\n") end
+    break
+end; }
+
+
+patronrange = $patrons.split("-")
+patronrange.length > 1 ? @patronrange = (patronrange[0].to_i..patronrange[1].to_i).to_a : @patronrange = patronrange
+@barcodes    = File.readlines($barcode_file)
 
 def time_rand from = 0.0, to = Time.now
   Time.at(from + rand * (to.to_f - from.to_f))
