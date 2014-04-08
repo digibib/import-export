@@ -84,6 +84,9 @@ my $record_count = 0;
  # turn off strict so process does not stop on errors
 $batch->strict_off();
 
+# output processed marc to this file
+open(OUTPUT, '> out.mrc') or die $!;
+
 while (my $record = $batch->next() ) {
 	$record_count++;
 
@@ -146,7 +149,7 @@ while (my $record = $batch->next() ) {
 		warn "WARNING: No items found for titlenr: $tnr\n";
 	}
 
-	#print $record->as_usmarc();
+	print OUTPUT $record->as_usmarc();
 
 	#print "\n\n" . Dumper($record->field('952'));
 
@@ -154,5 +157,7 @@ while (my $record = $batch->next() ) {
 	last if ($record_count == 100);
 }
 
+close(OUTPUT);
+
 print "\nNumber of records processed: $record_count";
-print "\nWriting marc database: out.mrc."
+print "\nWritten to file: out.mrc."
