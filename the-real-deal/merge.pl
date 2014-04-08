@@ -59,24 +59,24 @@ use constant {
 };
 
 
-# my $csv = Text::CSV_XS->new ({ sep_char => "|", binary => 1 });
-# open my $fh, "./ex.csv" or die "ex.csv missing";
+my $csv = Text::CSV_XS->new ({ sep_char => "|", binary => 1 });
+open my $fh, "./ex.csv" or die "ex.csv missing";
 
-# print "Building giant items hash, please wait...\n";
+print "Building giant items hash, please wait...\n";
 
-# my $ex = {};
-# my $count = 0;
-# while ( my $row = $csv->getline ($fh) ) {
-# 	unless ( exists $ex->{$row->[TITNR]} ) {
-# 		$ex->{$row->[TITNR]} = [];
-# 	}
-# 	push ( $ex->{$row->[TITNR]}, $row );
-# 	progress_dot() if (++$count % 50000 == 0);
-# }
+my $ex = {};
+my $count = 0;
+while ( my $row = $csv->getline ($fh) ) {
+	unless ( exists $ex->{ int( $row->[TITNR] ) } ) {
+		$ex->{ int( $row->[TITNR] ) } = [];
+	}
+	push ( $ex->{ int( $row->[TITNR] ) }, $row );
+	progress_dot() if (++$count % 50000 == 0);
+}
 
-# close $fh;
+close $fh;
 
-print "Looping through marc database, merging itemsinfo into field 952.";
+print "\n\nLooping through marc database, merging itemsinfo into field 952.\n\n";
 
 my $batch = MARC::Batch->new( 'USMARC', "bib.07-04-2014.mrc");
 my $record_count = 0;
@@ -86,9 +86,10 @@ $batch->strict_off();
 
 while (my $record = $batch->next() ) {
 	$record_count++;
-	my $titlenr = int( $record->field('001')->data() );
 
-	# Add 942 field (item type)
+	my $tnr = int( $record->field('001')->data() );
+
+	# Add 942 field (default item type)
 	if ( $record->subfield('019', 'b') ) {
 		my $it = uc $record->subfield('019', 'b');
 		$record->append_fields( MARC::Field->new(942, ' ', ' ', 'c' => $it) );
@@ -97,14 +98,61 @@ while (my $record = $batch->next() ) {
 		$record->append_fields( MARC::Field->new(942, ' ', ' ', 'c' => 'X') );
 	}
 
-
 	# Build 952 field (eksemplardata)
+	if( exists $ex->{$tnr} ) {
+		foreach my $x ( @{ $ex->{$tnr} } ) {
+			# 952$a branchcode
+			my $field952 = MARC::Field->new('952', '', '', 'a' => @$x[AVD] );
 
-	print Dumper($record);
+			# 952$b holding branch (the same?)
+			$field952->add_subfields('b' => @$x[AVD] );
+
+			# 952$c shelving location (authorized value? TODO check)
+			if ( @$x[PLASS] ne "" ) {
+				$field952->add_subfields('c' => @$x[PLASS] );
+			}
+
+			# 952$o full call number (hylleplassering)
+			# TODO skal all info med her, eks 'q' for kvartbøker i mag ?
+			my $a = '';
+			my $b = '';
+			if ($record->field('090') && $record->field('090')->subfield('c')) {
+				$a = $record->field('090')->subfield('c');
+			}
+			if ($record->field('090') && $record->field('090')->subfield('d')) {
+				$b = ' ' . $record->field('090')->subfield('d');
+			}
+			$field952->add_subfields('o' => $a . $b);
+
+			# 952$p barcode
+			$field952->add_subfields('p' => barcode(@$x[TITNR], @$x[EXNR] ) );
+
+			# 952$t copy (eksemplarnummer)
+			$field952->add_subfields('t' => @$x[EXNR] );
+
+			# 952$y item type
+			if ( $record->subfield('019', 'b') ) {
+				my $it = uc $record->subfield('019', 'b');
+				$field952->add_subfields('y' => $it );
+			} else {
+				# No item type, set to 'X'
+				$field952->add_subfields('y' => 'X' );
+			}
+
+			# add the complete 952 field
+			$record->append_fields($field952);
+		} # end ex foreach
+	} else {
+		warn "WARNING: No items found for titlenr: $tnr\n";
+	}
+
+	#print $record->as_usmarc();
+
+	#print "\n\n" . Dumper($record->field('952'));
 
 	# Stop early for now
-	last if ($record_count == 1);
+	last if ($record_count == 100);
 }
 
-print "Number of records processed: $record_count";
-print "Writing marc database."
+print "\nNumber of records processed: $record_count";
+print "\nWriting marc database: out.mrc."
