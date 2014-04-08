@@ -5,3 +5,5 @@
 ```bash
 	./ex2csv.sh <eksemplardump> <utdata.csv>
 ```
+
+`merge.pl` slår sammen poster og eksemplardata (bygg 952-feltet)
