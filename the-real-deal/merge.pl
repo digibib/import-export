@@ -1,5 +1,9 @@
 #!/usr/bin/env perl
 
+use MARC::Batch;
+use MARC::Record;
+use MARC::Field;
+
 use Text::CSV_XS;
 use Data::Dumper;
 
@@ -25,9 +29,10 @@ sub progress_dot {
 	print ".";
 }
 
-#28410|22  |fopp|OSLO|     |mag|0|0|||||-227302|28|00/00/0000|00/00/0000|0||0|0|-28410
-#28151|12  |from|    |q    |93,H|0|0|i||||-225220|28|00/00/0000|00/00/0000|0||0|0|0
-#titnr|exnr|avd |plas|hylle|note
+#titnr|exnr|avd |plas|hylle|note|bind|år|status|
+#28410|22  |fopp|OSLO|     |mag |0   |0 |||||-227302|28|00/00/0000|00/00/0000|0||0|0|-28410
+#28151|12  |from|    |q    |93,H|0   |0 |i||||-225220|28|00/00/0000|00/00/0000|0||0|0|0
+
 # CSV Columns
 use constant {
 	TITNR => 0,     # brukes til å lage barcode (952$p)
@@ -54,19 +59,52 @@ use constant {
 };
 
 
-my $csv = Text::CSV_XS->new ({ sep_char => "|", binary => 1 });
-open my $fh, "./ex.csv" or die "ex.csv missing";
+# my $csv = Text::CSV_XS->new ({ sep_char => "|", binary => 1 });
+# open my $fh, "./ex.csv" or die "ex.csv missing";
 
-print "Building giant items hash, please wait...\n";
+# print "Building giant items hash, please wait...\n";
 
-my $ex = {};
-my $count = 0;
-while ( my $row = $csv->getline ($fh) ) {
-	unless ( exists $ex->{$row->[TITNR]} ) {
-		$ex->{$row->[TITNR]} = [];
+# my $ex = {};
+# my $count = 0;
+# while ( my $row = $csv->getline ($fh) ) {
+# 	unless ( exists $ex->{$row->[TITNR]} ) {
+# 		$ex->{$row->[TITNR]} = [];
+# 	}
+# 	push ( $ex->{$row->[TITNR]}, $row );
+# 	progress_dot() if (++$count % 50000 == 0);
+# }
+
+# close $fh;
+
+print "Looping through marc database, merging itemsinfo into field 952.";
+
+my $batch = MARC::Batch->new( 'USMARC', "bib.07-04-2014.mrc");
+my $record_count = 0;
+
+ # turn off strict so process does not stop on errors
+$batch->strict_off();
+
+while (my $record = $batch->next() ) {
+	$record_count++;
+	my $titlenr = int( $record->field('001')->data() );
+
+	# Add 942 field (item type)
+	if ( $record->subfield('019', 'b') ) {
+		my $it = uc $record->subfield('019', 'b');
+		$record->append_fields( MARC::Field->new(942, ' ', ' ', 'c' => $it) );
+	} else {
+		# No item type, set to 'X'
+		$record->append_fields( MARC::Field->new(942, ' ', ' ', 'c' => 'X') );
 	}
-	push ( $ex->{$row->[TITNR]}, $row );
-	progress_dot() if (++$count % 50000 == 0);
+
+
+	# Build 952 field (eksemplardata)
+
+	print Dumper($record);
+
+	# Stop early for now
+	last if ($record_count == 1);
 }
 
-close $fh;
+print "Number of records processed: $record_count";
+print "Writing marc database."
