@@ -29,9 +29,9 @@ sub progress_dot {
 	print ".";
 }
 
-#titnr|exnr|avd |plas|hylle|note|bind|år|status|
-#28410|22  |fopp|OSLO|     |mag |0   |0 |||||-227302|28|00/00/0000|00/00/0000|0||0|0|-28410
-#28151|12  |from|    |q    |93,H|0   |0 |i||||-225220|28|00/00/0000|00/00/0000|0||0|0|0
+#titnr|exnr|avd |plas|hylle|note|bind|år|status|resstat|laanstat|utlkode|laanr  |laantid|forfall   |purrdat   |antpurr|etikett|antlaan|kl_set|strek
+#28410|22  |fopp|OSLO|     |mag |0   |0 |      |       |        |       |-227302|28     |00/00/0000|00/00/0000|0      |       |0      |0     |-28410
+#28151|12  |from|    |q    |93,H|0   |0 |i     |       |        |       |-225220|28     |00/00/0000|00/00/0000|0      |       |0      |0     |0
 
 # CSV Columns
 use constant {
@@ -44,7 +44,7 @@ use constant {
 	BIND => 6,      # 952$h Volume and issue information for serial items
 	AAR => 7,       #
 	STATUS => 8,    # ?
-	RESSTAT => 9,   # ? 952$n total holds
+	RESSTAT => 9,   # 952$m antal renewals
 	LAANSTAT => 10, # ? 952$l total checkouts (incl renewals?)
 	UTLKODE => 11,  # ? ikke til utlån
 	LAANR => 12,    # issues.borrowernumber
@@ -53,7 +53,7 @@ use constant {
 	PURRDAT => 15,  # purredato.. inn i en annen koha-tabell?
 	ANTPURR => 16,  # antall purringer, mangler i koha?
 	ETIKETT => 17,  # ?
-	ANTLAAN => 18,  # ? forskjellig fra LAANSTAT?
+	ANTLAAN => 18,  # 952$l total checkouts
 	KL_SETT => 19,  # klasseset 952$5 restricted?
 	STREK => 20,    # ?
 };
@@ -115,6 +115,22 @@ while (my $record = $batch->next() ) {
 				$field952->add_subfields('c' => @$x[PLASS] );
 			}
 
+			# 952$h volume and issue information, flerbindsverk?
+			if ( @$x[BIND] ne "0" ) {
+				$field952->add_subfields('h' => @$x[BIND] );
+			}
+
+			# 952$l total checkouts
+			$field952->add_subfields('l' => @$x[ANTLAAN] );
+
+			# 952$m total renewals
+			if ( @$x[LAANSTAT] ne "" ) {
+				# Antall fornyelser som en char. Første fornyelse blir "1", andre "2" osv.
+				# Dersom det fornyes over 9 ganger så blir det ":", ";", "<" osv. Følger ascii-tabellen.
+				my $val = ord( @$x[LAANSTAT] ) - 48;
+				$field952->add_subfields('m' => $val );
+			}
+
 			# 952$o full call number (hylleplassering)
 			# TODO skal all info med her, eks 'q' for kvartbøker i mag ?
 			my $a = '';
@@ -142,6 +158,16 @@ while (my $record = $batch->next() ) {
 				$field952->add_subfields('y' => 'X' );
 			}
 
+			# 952$z public note
+			if ( @$x[NOTE] ne "" ) {
+				$field952->add_subfields('z' => @$x[NOTE] );
+			}
+
+			# 952$5 restricted
+			if ( @$x[UTLKODE] ne "" && @$x[UTLKODE] eq "r") {
+				# hvis 'r': ikke til utlån)
+				$field952->add_subfields('5' =>  '1' );
+			}
 			# add the complete 952 field
 			$record->append_fields($field952);
 		} # end ex foreach
