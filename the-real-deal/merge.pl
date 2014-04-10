@@ -3,6 +3,7 @@
 use MARC::Batch;
 use MARC::Record;
 use MARC::Field;
+use MARC::File::XML ( BinaryEncoding => 'utf8' );
 
 use Text::CSV_XS;
 use Data::Dumper;
@@ -23,10 +24,6 @@ sub barcode {
 sub callnumber {
 	my ($dewey, $plass, $hylle) = (@_);
 	# TODO
-}
-
-sub progress_dot {
-	print ".";
 }
 
 #titnr|exnr|avd |plas|hylle|note|bind|år|status|resstat|laanstat|utlkode|laanr  |laantid|forfall   |purrdat   |antpurr|etikett|antlaan|kl_set|strek
@@ -62,30 +59,24 @@ use constant {
 my $csv = Text::CSV_XS->new ({ sep_char => "|", binary => 1 });
 open my $fh, "./ex.csv" or die "ex.csv missing";
 
-print "Building giant items hash, please wait...\n";
+print "Building items hash, please wait...\n";
 
 my $ex = {};
-my $count = 0;
 while ( my $row = $csv->getline ($fh) ) {
 	unless ( exists $ex->{ int( $row->[TITNR] ) } ) {
 		$ex->{ int( $row->[TITNR] ) } = [];
 	}
 	push ( $ex->{ int( $row->[TITNR] ) }, $row );
-	progress_dot() if (++$count % 50000 == 0);
 }
 
 close $fh;
 
 print "\n\nLooping through marc database, merging itemsinfo into field 952.\n\n";
 
-my $batch = MARC::Batch->new( 'USMARC', "bib.07-04-2014.mrc");
 my $record_count = 0;
-
- # turn off strict so process does not stop on errors
+my $xmloutfile = MARC::File::XML->out( 'out.marcxml' );
+my $batch = MARC::Batch->new('XML', "bib.marcxml");
 $batch->strict_off();
-
-# output processed marc to this file
-open(OUTPUT, '> out.mrc') or die $!;
 
 while (my $record = $batch->next() ) {
 	$record_count++;
@@ -168,22 +159,22 @@ while (my $record = $batch->next() ) {
 				# hvis 'r': ikke til utlån)
 				$field952->add_subfields('5' =>  '1' );
 			}
+
 			# add the complete 952 field
 			$record->append_fields($field952);
 		} # end ex foreach
 	} else {
-		warn "WARNING: No items found for titlenr: $tnr\n";
+		#warn "WARNING: No items found for titlenr: $tnr\n";
 	}
 
-	print OUTPUT $record->as_usmarc();
 
-	#print "\n\n" . Dumper($record->field('952'));
+	$xmloutfile->write( $record);
 
 	# Stop early for now
-	last if ($record_count == 100);
+	#last if ($record_count == 1000);
 }
 
-close(OUTPUT);
+$xmloutfile->close();
 
 print "\nNumber of records processed: $record_count";
 print "\nWritten to file: out.mrc."
