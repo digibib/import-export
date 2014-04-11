@@ -78,6 +78,8 @@ my $xmloutfile = MARC::File::XML->out( 'out.marcxml' );
 my $batch = MARC::Batch->new('XML', "bib.marcxml");
 $batch->strict_off();
 
+open (my $missing, '>', 'missing.txt') or die;
+
 while (my $record = $batch->next() ) {
 	$record_count++;
 
@@ -172,7 +174,7 @@ while (my $record = $batch->next() ) {
 			$record->append_fields($field952);
 		} # end ex foreach
 	} else {
-		#warn "WARNING: No items found for titlenr: $tnr\n";
+		print $missing "$tnr\n";
 	}
 
 
@@ -183,6 +185,7 @@ while (my $record = $batch->next() ) {
 }
 
 $xmloutfile->close();
+close($missing);
 
 print "\nNumber of records processed: $record_count";
-print "\nWritten to file: out.mrc."
+print "\nWritten to file: out.marcxml."
