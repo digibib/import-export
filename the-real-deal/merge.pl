@@ -117,6 +117,7 @@ while (my $record = $batch->next() ) {
 			}
 
 			# 952$h volume and issue information, flerbindsverk?
+			# Vises som "publication details" i grensesnittet. (Serienummererering/kronologi)
 			if ( @$x[BIND] ne "0" ) {
 				$field952->add_subfields('h' => @$x[BIND] );
 			}
