@@ -95,11 +95,19 @@ while (my $record = $batch->next() ) {
 	# Build 952 field (eksemplardata)
 	if( exists $ex->{$tnr} ) {
 		foreach my $x ( @{ $ex->{$tnr} } ) {
-			# 952$a branchcode
-			my $field952 = MARC::Field->new('952', '', '', 'a' => @$x[AVD] );
 
-			# 952$b holding branch (the same?)
-			$field952->add_subfields('b' => @$x[AVD] );
+			my $branch = @$x[AVD];
+
+			# Import will fail if there is no branch
+			if ($branch eq "" ) {
+				$branch = "ukjent";
+			}
+
+			# 952$a branchcode
+			my $field952 = MARC::Field->new('952', '', '', 'a' => $branch );
+
+			# 952$b holding branch (the same for now, possibly depot)
+			$field952->add_subfields('b' => $branch );
 
 			# 952$c shelving location (authorized value? TODO check)
 			if ( @$x[PLASS] ne "" ) {
