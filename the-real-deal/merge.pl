@@ -149,14 +149,14 @@ while (my $record = $batch->next() ) {
 			# 952$p barcode
 			$field952->add_subfields('p' => barcode(@$x[TITNR], @$x[EXNR] ) );
 
-      # 952$q due date (if checked out)
-      if ( @$x[FORFALL] ne "00/00/0000" ) {
-        my $date = @$x[FORFALL];
-        my $y = substr($date, 6, 4);
-        my $m = substr($date, 3, 2);
-        my $d = substr($date, 0, 2);
-        $field952->add_subfields('q' => "$y-$m-$d" );
-      }
+			# 952$q due date (if checked out)
+			if ( @$x[FORFALL] ne "00/00/0000" ) {
+				my $date = @$x[FORFALL];
+				my $y = substr($date, 6, 4);
+				my $m = substr($date, 3, 2);
+				my $d = substr($date, 0, 2);
+				$field952->add_subfields('q' => "$y-$m-$d" );
+			}
 
 			# 952$t copy (eksemplarnummer)
 			$field952->add_subfields('t' => @$x[EXNR] );
@@ -176,46 +176,44 @@ while (my $record = $batch->next() ) {
 			}
 
 			# eksemplarstatuser
-      # forutsetter at Koha har autoriserte verdier som dokumenter i README.md
+			# forutsetter at Koha har autoriserte verdier som dokumenter i README.md
 
 			if ( @$x[UTLKODE] ne "" && @$x[UTLKODE] eq "r") {
-        # referanseverk: ikke til utlån
-        $field952->add_subfields('7' =>  '1' );
+				# referanseverk: ikke til utlån
+				$field952->add_subfields('7' =>  '1' );
 			}
 
-      switch ( @$x[STATUS] ) {
-        # NOT_LOAN ####
+			switch ( @$x[STATUS] ) {
+				# NOT_LOAN ####
 
-        # i bestilling
-        case "e" { $field952->add_subfields('7' => '-1' ); }
-        # ny
-        case "n" { $field952->add_subfields('7' => '2' ); }
-        # til internt bruk
-        case "c" { $field952->add_subfields('7' => '3' ); }
-        # til katalogisering
-        case "k" { $field952->add_subfields('7' => '4' ); }
-        # vurderes kassert
-        case "v" { $field952->add_subfields('7' => '5' ); }
-        # retting
-        case "q" { $field952->add_subfields('7' => '6' ); }
-        # til innbinding
-        case "b" { $field952->add_subfields('7' => '7' ); }
+				# i bestilling
+				case "e" { $field952->add_subfields('7' => '-1' ); }
+				# ny
+				case "n" { $field952->add_subfields('7' => '2' ); }
+				# til internt bruk
+				case "c" { $field952->add_subfields('7' => '3' ); }
+				# til katalogisering
+				case "k" { $field952->add_subfields('7' => '4' ); }
+				# vurderes kassert
+				case "v" { $field952->add_subfields('7' => '5' ); }
+				# retting
+				case "q" { $field952->add_subfields('7' => '6' ); }
+				# til innbinding
+				case "b" { $field952->add_subfields('7' => '7' ); }
 
-        # LOST #####
+				# LOST #####
 
-        # tapt
-        case "t" { $field952->add_subfields('1' => '1' ); }
-        # ikke på plass
-        case "i" { $field952->add_subfields('1' => '4' ); }
-        # påstått levert
-        case "p" { $field952->add_subfields('1' => '5' ); }
-        # påstått ikke lånt
-        case "k" { $field952->add_subfields('1' => '6' ); }
-        # borte i transport
-        case "v" { $field952->add_subfields('1' => '7' ); }
-
-      }
-
+				# tapt
+				case "t" { $field952->add_subfields('1' => '1' ); }
+				# ikke på plass
+				case "i" { $field952->add_subfields('1' => '4' ); }
+				# påstått levert
+				case "p" { $field952->add_subfields('1' => '5' ); }
+				# påstått ikke lånt
+				case "k" { $field952->add_subfields('1' => '6' ); }
+				# borte i transport
+				case "v" { $field952->add_subfields('1' => '7' ); }
+			}
 
 			# add the complete 952 field
 			$record->append_fields($field952);

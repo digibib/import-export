@@ -57,7 +57,7 @@
     ("NOT_LOAN", "3", "til internt bruk"),
     ("NOT_LOAN", "4", "til katalogisering"),
     ("NOT_LOAN", "5", "vurderes kassert"),
-    ("NOT_LOAN", "6", "retting"),
+    ("NOT_LOAN", "6", "til retting"),
     ("NOT_LOAN", "7", "til innbinding"),
     ("RESTRICTED", "1", "begrenset tilgang");
    ```
