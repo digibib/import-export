@@ -8,6 +8,7 @@ use MARC::File::XML ( BinaryEncoding => 'utf8' );
 use Text::CSV_XS;
 use Data::Dumper;
 
+use Switch;
 use strict;
 use warnings;
 
@@ -47,12 +48,12 @@ use constant {
 	LAANR => 12,    # issues.borrowernumber
 	LAANTID => 13,  # mangler i koha, uttrykes av sirkulasjonsregler
 	FORFALL => 14,  # issues.due_date
-	PURRDAT => 15,  # purredato.. inn i en annen koha-tabell?
-	ANTPURR => 16,  # antall purringer, mangler i koha?
-	ETIKETT => 17,  # ?
+	PURRDAT => 15,  # purredato.. inn i en annen koha-tabell
+	ANTPURR => 16,  # antall purringer på aktivt lån, mangler i koha
+	ETIKETT => 17,  # etikettpulje
 	ANTLAAN => 18,  # 952$l total checkouts
-	KL_SETT => 19,  # klasseset 952$5 restricted?
-	STREK => 20,    # ?
+	KL_SETT => 19,  # antall ex i klasseset
+	STREK => 20,    # gammelt felt for strekkode
 };
 
 
@@ -165,11 +166,47 @@ while (my $record = $batch->next() ) {
 				$field952->add_subfields('z' => @$x[NOTE] );
 			}
 
-			# 952$5 restricted
+			# eksemplarstatuser
+      # forutsetter at Koha har autoriserte verdier som dokumenter i README.md
+
 			if ( @$x[UTLKODE] ne "" && @$x[UTLKODE] eq "r") {
-				# hvis 'r': ikke til utlån)
-				$field952->add_subfields('5' =>  '1' );
+        # referanseverk: ikke til utlån
+        $field952->add_subfields('7' =>  '1' );
 			}
+
+      switch ( @$x[STATUS] ) {
+        # NOT_LOAN ####
+
+        # i bestilling
+        case "e" { $field952->add_subfields('7' => '-1' ); }
+        # ny
+        case "n" { $field952->add_subfields('7' => '2' ); }
+        # til internt bruk
+        case "c" { $field952->add_subfields('7' => '3' ); }
+        # til katalogisering
+        case "k" { $field952->add_subfields('7' => '4' ); }
+        # vurderes kassert
+        case "v" { $field952->add_subfields('7' => '5' ); }
+        # retting
+        case "q" { $field952->add_subfields('7' => '6' ); }
+        # til innbinding
+        case "b" { $field952->add_subfields('7' => '7' ); }
+
+        # LOST #####
+
+        # tapt
+        case "t" { $field952->add_subfields('1' => '1' ); }
+        # ikke på plass
+        case "i" { $field952->add_subfields('1' => '4' ); }
+        # påstått levert
+        case "p" { $field952->add_subfields('1' => '5' ); }
+        # påstått ikke lånt
+        case "k" { $field952->add_subfields('1' => '6' ); }
+        # borte i transport
+        case "v" { $field952->add_subfields('1' => '7' ); }
+
+      }
+
 
 			# add the complete 952 field
 			$record->append_fields($field952);
@@ -182,7 +219,7 @@ while (my $record = $batch->next() ) {
 	$xmloutfile->write( $record);
 
 	# Stop early for now
-	#last if ($record_count == 1000);
+	last if ($record_count == 10000);
 }
 
 $xmloutfile->close();
