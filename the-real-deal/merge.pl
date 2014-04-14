@@ -149,6 +149,15 @@ while (my $record = $batch->next() ) {
 			# 952$p barcode
 			$field952->add_subfields('p' => barcode(@$x[TITNR], @$x[EXNR] ) );
 
+      # 952$q due date (if checked out)
+      if ( @$x[FORFALL] ne "00/00/0000" ) {
+        my $date = @$x[FORFALL];
+        my $y = substr($date, 6, 4);
+        my $m = substr($date, 3, 2);
+        my $d = substr($date, 0, 2);
+        $field952->add_subfields('q' => "$y-$m-$d" );
+      }
+
 			# 952$t copy (eksemplarnummer)
 			$field952->add_subfields('t' => @$x[EXNR] );
 
