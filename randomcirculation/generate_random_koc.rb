@@ -3,21 +3,17 @@
 
 require 'rubygems'
 require 'date'
-if RUBY_VERSION < "1.9"
-  require "faster_csv"
-  CSV = FCSV
-else
-  require "csv"
-end
 
 def usage(s)
     $stderr.puts(s)
     $stderr.puts("Usage: \n")
-    $stderr.puts("#{File.basename($0)} -e barcodes.txt -p patronarray [-o output_file.csv]\n")
+    $stderr.puts("#{File.basename($0)} -e barcodes.txt -p patronarray [-o output_file.koc]\n")
     $stderr.puts(" -b barcodes file must be on single lines\n")
     $stderr.puts(" -p [patronarray] range of patron cards in format 1000-1020 \n")
+    $stderr.puts(" -o [output file.koc] \n")
     exit(2)
 end
+puts ARGV.inspect
 loop { case ARGV[0]
     when '-b' then ARGV.shift; $barcode_file = ARGV.shift
     when '-p' then ARGV.shift; $patrons = ARGV.shift
@@ -27,6 +23,7 @@ loop { case ARGV[0]
       if !$barcode_file || !$patrons then usage("Missing argument!\n") end
     break
 end; }
+
 
 
 patronrange = $patrons.split("-")
@@ -72,4 +69,9 @@ circulation.each do | item |
   koc += "\t" + item[:barcode].to_s
   koc += "\n"
 end
-puts koc
+
+if $output_file
+  File.open($output_file, 'w+') {|f| f.write(koc) }
+else
+  puts koc
+end

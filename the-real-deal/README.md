@@ -4,8 +4,19 @@
 
 * `merge.pl`: bygger inn eksemplardata i 952-feltet
 
+* `line2iso.pl`: konverter fra marc linjeformat til iso
+
+## Installer avhengigheter (ubuntu)
+
+* yaz: 
+  `sudo apt-get install yaz`
+* perl-marc:
+  Hvis ikke Koha er installert trenger du noen perl-bibliotek
+  `sudo apt-get install libmarc-perl libmarc-record-perl libmarc-xml-perl libswitch-perl`
 
 ## Import fra begynnelse til slutt
+
+### Eksemplarregister
 
 #### 1. Eksportér data fra carl
 
@@ -67,3 +78,13 @@
   ```bash
   sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl /usr/local/src/kohaclone/misc/migration_tools/bulkmarcimport.pl -d -file /vagrant/out.marcxml -g 001 -v 2 -b -m=MARCXML
 ```
+
+### Autoritetsregister
+
+pga. unicodeprob må det gjøres i to omganger:
+
+* konvertere fra linjeformat til marc (legger til en dummy Leader):
+  `perl line2iso2.pl -i data.aut.20140425-114247.txt > data.aut.mrc`
+
+* kovertere til ønsket format med utf8:
+  `yaz-marcdump -o marcxml -t utf8 data.aut.mrc > aut.marcxml`
