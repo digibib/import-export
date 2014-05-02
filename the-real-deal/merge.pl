@@ -136,15 +136,23 @@ while (my $record = $batch->next() ) {
 
 			# 952$o full call number (hylleplassering)
 			# TODO skal all info med her, eks 'q' for kvartbøker i mag ?
-			my $a = '';
-			my $b = '';
-			if ($record->field('090') && $record->field('090')->subfield('c')) {
-				$a = $record->field('090')->subfield('c');
-			}
-			if ($record->field('090') && $record->field('090')->subfield('d')) {
-				$b = ' ' . $record->field('090')->subfield('d');
-			}
-			$field952->add_subfields('o' => $a . $b);
+			my ($a, $b, $c, $d);
+      if ( $record->field('090') ) {
+        if ( $record->field('090')->subfield('a') ) {
+          $a = $record->field('090')->subfield('a');
+        }
+        if ( $record->field('090')->subfield('b') ) {
+          $b = $record->field('090')->subfield('b');
+        }
+        if ( $record->field('090')->subfield('c') ) {
+          $c = $record->field('090')->subfield('c');
+        }
+        if ( $record->field('090')->subfield('d') ) {
+          $d = $record->field('090')->subfield('d');
+        }
+        my @cn = ($a, $b, $c, $d);
+        $field952->add_subfields('o' => join(" ", grep defined, @cn) );
+      }
 
 			# 952$p barcode
 			$field952->add_subfields('p' => barcode(@$x[TITNR], @$x[EXNR] ) );
