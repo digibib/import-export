@@ -227,7 +227,10 @@ while (my $record = $batch->next() ) {
 			$record->append_fields($field952);
 		} # end ex foreach
 	} else {
-		print $missing "$tnr\n";
+    my $status = substr($record->leader(), 5, 1);
+    if ($status ne "d" && $status ne "f" && $status ne "e" && $status ne "i" && $status ne "l") {
+        print $missing "$tnr\n";
+        }
 	}
 
 
