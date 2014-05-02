@@ -137,7 +137,7 @@ while ( my $record = $batch->next() ) {
             $field952->add_subfields( 'm' => $val );
             }
 
-            # 952$o full call number (hylleplassering)
+            # 952$o full call number (hyllesignatur)
             # TODO skal all info med her, eks 'q' for kvartbøker i mag ?
             my ( $a, $b, $c, $d );
             if ( $record->field('090') ) {
@@ -245,6 +245,7 @@ while ( my $record = $batch->next() ) {
         }    # end ex foreach
     }
     else {
+        # Ingen eksemplarer tilknyttet posten
         my $status = substr( $record->leader(), 5, 1 );
         if (   $status ne "d"
             && $status ne "f"
