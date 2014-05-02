@@ -85,7 +85,7 @@ NB: for at tittelnummrene skal brukes som biblioitemnumber, må du `git bz apply
 
 Først: `git bz apply 11084`, så
 
-    sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl misc/cronjobs/delete_fixed_field_5.pl -c -i -v
+    sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl /usr/local/src/kohaclone/misc/cronjobs/delete_fixed_field_5.pl -c
 
 Dette vil sørge for at slettede poster (identifisert med status 'd' i leader posisjon 5) havner i `deletedbiblio` og `deletedbiblioitems` tabellene.
 
