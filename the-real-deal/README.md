@@ -8,7 +8,7 @@
 
 ## Installer avhengigheter (ubuntu)
 
-* yaz: 
+* yaz:
   `sudo apt-get install yaz`
 * perl-marc:
   Hvis ikke Koha er installert trenger du noen perl-bibliotek
@@ -16,7 +16,7 @@
 
 ## Import fra begynnelse til slutt
 
-### Eksemplarregister
+### Katalog og Eksemplarregister
 
 #### 1. Eksportér data fra carl
 
@@ -27,7 +27,7 @@
 
 #### 2. Konvertér katalog til marcxml
 
-   `yaz-marcdump -o marcxml -t utf8 helebasen.mrc > bib.marcxml`
+   `hoggestabe -i=data.vmarc.txt -o=bib.marcxml`
 
 #### 3. Konvertér exemp registeret til CSV:
 
@@ -73,11 +73,21 @@
     ("RESTRICTED", "1", "begrenset tilgang");
    ```
 
-#### 6. Importér katalogen inn i Koha når du går fra jobb/legger deg om kvelden:
+#### 6. Importér katalogen inn i Koha når du går fra jobb/legger deg om kvelden (tar laaang tid):
+
+NB: for at tittelnummrene skal brukes som biblioitemnumber, må du `git bz apply 6113`.
 
   ```bash
   sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl /usr/local/src/kohaclone/misc/migration_tools/bulkmarcimport.pl -d -file /vagrant/out.marcxml -g 001 -v 2 -b -m=MARCXML
 ```
+
+#### 7. Slett "slettede poster"
+
+Først: `git bz apply 11084`, så
+
+    sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl misc/cronjobs/delete_fixed_field_5.pl -c -i -v
+
+Dette vil sørge for at slettede poster (identifisert med status 'd' i leader posisjon 5) havner i `deletedbiblio` og `deletedbiblioitems` tabellene.
 
 ### Autoritetsregister
 
