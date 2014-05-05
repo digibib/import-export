@@ -260,11 +260,14 @@ while ( my $record = $batch->next() ) {
     $xmloutfile->write($record);
 
     # Stop early for now
-    last if ( $record_count == 10000 );
+    #last if ( $record_count == 10000 );
+
+    print "$record_count records processed\r";
 }
 
 $xmloutfile->close();
 close($missing);
+
 
 print "\nNumber of records processed: $record_count";
 print "\nWritten to file: out.marcxml."
