@@ -191,7 +191,9 @@ while ( my $record = $batch->next() ) {
             # eksemplarstatuser
             # forutsetter at Koha har autoriserte verdier som dokumenter i README.md
 
-            if ( @$x[UTLKODE] ne "" && @$x[UTLKODE] eq "r" ) {
+            if ( @$x[UTLKODE] ne ""
+                && ( @$x[UTLKODE] eq "r" || @$x[UTLKODE] eq "e" ) )
+            {
 
                 # referanseverk: ikke til utlån
                 $field952->add_subfields( '7' => '1' );
