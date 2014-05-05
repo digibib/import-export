@@ -62,6 +62,8 @@
     ("LOST", "5", "påstatt levert"),
     ("LOST", "6", "påstått ikke lånt"),
     ("LOST", "7", "borte i transport"),
+    ("LOST", "8", "tapt, regning betalt"),
+    ("LOST", "9", "vidvanke, registrert forsvunnet"),
     ("NOT_LOAN", "-1", "i bestilling"),
     ("NOT_LOAN", "1", "referanseverk"),
     ("NOT_LOAN", "2", "ny"),

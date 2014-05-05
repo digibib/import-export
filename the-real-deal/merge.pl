@@ -222,10 +222,14 @@ while ( my $record = $batch->next() ) {
                 # til innbinding
                 case "b" { $field952->add_subfields( '7' => '7' ); }
 
+
                 # LOST #####
 
                 # tapt
                 case "t" { $field952->add_subfields( '1' => '1' ); }
+
+                # tapt, regning betalt
+                case "S" { $field952->add_subfields( '1' => '8' ); }
 
                 # ikke på plass
                 case "i" { $field952->add_subfields( '1' => '4' ); }
@@ -238,6 +242,10 @@ while ( my $record = $batch->next() ) {
 
                 # borte i transport
                 case "v" { $field952->add_subfields( '1' => '7' ); }
+
+                # på vidvanke
+                case "V" { $field952->add_subfields( '1' => '9' ); }
+
             }
 
             # add the complete 952 field
