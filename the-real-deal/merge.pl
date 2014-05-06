@@ -21,13 +21,6 @@ sub barcode {
     sprintf( "0301%07d%03d", $tnr, $exnr );
 }
 
-# Generate Koha call number (hyllesignatur)
-sub callnumber {
-    my ( $dewey, $plass, $hylle ) = (@_);
-
-    # TODO
-}
-
 #titnr|exnr|avd |plas|hylle|note|bind|år|status|resstat|laanstat|utlkode|laanr  |laantid|forfall   |purrdat   |antpurr|etikett|antlaan|kl_set|strek
 #28410|22  |fopp|OSLO|     |mag |0   |0 |      |       |        |       |-227302|28     |00/00/0000|00/00/0000|0      |       |0      |0     |-28410
 #28151|12  |from|    |q    |93,H|0   |0 |i     |       |        |       |-225220|28     |00/00/0000|00/00/0000|0      |       |0      |0     |0
