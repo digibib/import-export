@@ -65,14 +65,14 @@
     ("LOST", "8", "tapt, regning betalt"),
     ("LOST", "9", "vidvanke, registrert forsvunnet"),
     ("NOT_LOAN", "-1", "i bestilling"),
-    ("NOT_LOAN", "1", "referanseverk"),
     ("NOT_LOAN", "2", "ny"),
     ("NOT_LOAN", "3", "til internt bruk"),
     ("NOT_LOAN", "4", "til katalogisering"),
     ("NOT_LOAN", "5", "vurderes kassert"),
     ("NOT_LOAN", "6", "til retting"),
     ("NOT_LOAN", "7", "til innbinding"),
-    ("RESTRICTED", "1", "begrenset tilgang");
+    ("RESTRICTED", "1", "begrenset tilgang"),
+    ("RESTRICTED", "2", "referanseverk");
    ```
 
 #### 6. Importér katalogen inn i Koha når du går fra jobb/legger deg om kvelden (tar laaang tid):
