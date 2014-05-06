@@ -196,7 +196,7 @@ while ( my $record = $batch->next() ) {
             {
 
                 # referanseverk: ikke til utlån
-                $field952->add_subfields( '7' => '1' );
+                $field952->add_subfields( '7' => '2' );
             }
 
             switch ( @$x[STATUS] ) {
