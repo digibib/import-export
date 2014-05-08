@@ -75,8 +75,22 @@ $batch->strict_off();
 
 open( my $missing, '>', 'missing.txt' ) or die;
 
-while ( my $record = $batch->next() ) {
+RECORD: while ( my $record = $batch->next() ) {
     $record_count++;
+
+    # Check record status from the leader
+    my $status = substr( $record->leader(), 5, 1 );
+    if (   $status eq "f" # fjernlån
+        || $status eq "e" # fjernlån av depoter
+        || $status eq "i" # innlån
+        || $status eq "l" # innlån av depoter
+        || $status eq "t" # bestilling av depoter
+        # || $status eq "m" # midlertidig
+        )
+    {
+        # Skip records with theese statuses
+        next RECORD;
+    }
 
     my $tnr = int( $record->field('001')->data() );
 
@@ -249,15 +263,11 @@ while ( my $record = $batch->next() ) {
     }
     else {
         # Ingen eksemplarer tilknyttet posten
-        my $status = substr( $record->leader(), 5, 1 );
-        if (   $status ne "d"
-            && $status ne "f"
-            && $status ne "e"
-            && $status ne "i"
-            && $status ne "l" )
-        {
-            print $missing "$tnr\n";
+        # Logg tittelnr for sjekk, hvis det ikke er en sletted post.
+        if ( $status ne "d" ) {
+          print $missing "$tnr\n";
         }
+
     }
 
     $xmloutfile->write($record);
