@@ -12,7 +12,6 @@ import (
 
 func main() {
 	inFile := flag.String("i", "", "emarc input file")
-	outFile := flag.String("o", "emarc.csv", "csv output file")
 	flag.Parse()
 
 	if *inFile == "" {
@@ -28,18 +27,31 @@ func main() {
 	}
 	defer f.Close()
 
-	out, err := os.Create(*outFile)
+	outKfond, err := os.Create("kfond.csv")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	defer out.Close()
+	defer outKfond.Close()
 
-	w := csv.NewWriter(out)
-	w.Comma = '|'
-	defer w.Flush()
+	wk := csv.NewWriter(outKfond)
+	wk.Comma = '|'
+	defer wk.Flush()
 
-	v := make([]string, 3)
+	outHs, err := os.Create("hs.csv")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer outHs.Close()
+
+	whs := csv.NewWriter(outHs)
+	whs.Comma = '|'
+	defer whs.Flush()
+
+	vk := make([]string, 2)  // k-fond kolonner
+	vhs := make([]string, 2) // hyllesignatur kolonner
+
 	scanner := bufio.NewScanner(f)
 	var tnr, ex string
 
@@ -57,21 +69,30 @@ func main() {
 				fmt.Println(err)
 				os.Exit(1)
 			}
-			v[0] = fmt.Sprintf("0301%07d%03d", tnrd, exd)
 
-			// skip lines where neither k-fond or hyllesignatur is present
-			if v[1] == "" || v[1] == "0" && v[2] == "" {
-				continue
+			if vk[1] == "1" {
+				vk[0] = fmt.Sprintf("0301%07d%03d", tnrd, exd)
+				err = wk.Write(vk)
+				if err != nil {
+					fmt.Println(err)
+					os.Exit(1)
+				}
 			}
 
-			err = w.Write(v)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
+			if vhs[1] != "" {
+				vhs[0] = fmt.Sprintf("0301%07d%03d", tnrd, exd)
+				err = whs.Write(vhs)
+				if err != nil {
+					fmt.Println(err)
+					os.Exit(1)
+				}
 			}
-			v[0] = ""
-			v[1] = ""
-			v[2] = ""
+
+			// reset
+			vk[0] = ""
+			vk[1] = ""
+			vhs[0] = ""
+			vhs[1] = ""
 
 			continue
 		}
@@ -83,14 +104,14 @@ func main() {
 			ex = line[4:len(line)]
 		case "016":
 			if len(line) >= 9 {
-				v[1] = line[8:9]
+				vk[1] = line[8:9]
 			}
 		case "090":
 			fields := strings.Split(line[7:len(line)], "$")
 			for i := range fields {
 				fields[i] = fields[i][1:len(fields[i])]
 			}
-			v[2] = strings.Join(fields, " ")
+			vhs[1] = strings.Join(fields, " ")
 		}
 
 	}
