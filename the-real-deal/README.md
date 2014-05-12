@@ -78,14 +78,28 @@ NB: for at tittelnummrene skal brukes som biblioitemnumber, må du `git bz apply
   ```bash
   sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl /usr/local/src/kohaclone/misc/migration_tools/bulkmarcimport.pl -d -file /vagrant/out.marcxml -g 001 -v 2 -b -m=MARCXML
 ```
+#### 7. SQL updates
+Ikke all informasjon kommer med ved bulkmarcimporten. Noe trenger manuell oppdatering:
 
-#### 7. Slett "slettede poster"
+```go run emarc2sql.go -i data.emarc.20140426-140347.txt```
+
+Dette generer noen sql-filer som kan importeres rett i databasen:
+
+```bash
+  mysql -u root koha_knakk < /vagrant/hs.sql
+  mysql -u root koha_knakk < /vagrant/kfond.sql
+```
+
+
+
+#### 8. Slett "slettede poster"
 
 Først: `git bz apply 11084`, så
 
     sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl /usr/local/src/kohaclone/misc/cronjobs/delete_fixed_field_5.pl -c
 
 Dette vil sørge for at slettede poster (identifisert med status 'd' i leader posisjon 5) havner i `deletedbiblio` og `deletedbiblioitems` tabellene.
+
 
 ### Autoritetsregister
 
