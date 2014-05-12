@@ -93,6 +93,8 @@ RECORD: while ( my $record = $batch->next() ) {
     }
 
     my $tnr = int( $record->field('001')->data() );
+    # force titlenr to integer to remove padding zeroes
+    $record->field('001')->update($tnr);
 
     # Add 942 field (default item type)
     if ( $record->subfield( '019', 'b' ) ) {
