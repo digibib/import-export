@@ -8,6 +8,8 @@
 
 * `emarc2csv.go`: konverterer fra emarc til csv (kun relevante verdier)
 
+* `inserts.pl`: diverse SQL inserts - informasjon som ikke kom med via bulkmarcimport
+
 ## Installer avhengigheter (ubuntu)
 
 * yaz:
@@ -44,12 +46,6 @@
    `perl merge.pl`
 
    Du vil nå ha en fil `out.marcxml` på ca 2 GB klar til import.
-
-   Skriptet vil også produsere 2 CSV-filer (TODO):
-
-   * `issues.csv` - aktive lån
-
-   * `transfers.csv` - overføringer (til henteavdeling, retur eieraveling)
 
 #### 5. Sett opp autoriserte verdier i Koha:
    ```sql
