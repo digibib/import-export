@@ -1,4 +1,5 @@
 *.marcxml
 *.csv
 *.txt
+*.sql
 test.pl

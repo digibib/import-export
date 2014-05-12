@@ -2,12 +2,16 @@ package main
 
 import (
 	"bufio"
-	"encoding/csv"
 	"flag"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+)
+
+const (
+	KFONDUPDATE = "UPDATE items SET booksellerid = 'kulturfond' WHERE barcode = '%s';\n"
+	HSUPDATE    = "UPDATE items SET itemcallnumber = '%s' WHERE barcode = '%s';\n"
 )
 
 func main() {
@@ -27,26 +31,24 @@ func main() {
 	}
 	defer f.Close()
 
-	outKfond, err := os.Create("kfond.csv")
+	outKfond, err := os.Create("kfond.sql")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	defer outKfond.Close()
 
-	wk := csv.NewWriter(outKfond)
-	wk.Comma = '|'
+	wk := bufio.NewWriter(outKfond)
 	defer wk.Flush()
 
-	outHs, err := os.Create("hs.csv")
+	outHs, err := os.Create("hs.sql")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	defer outHs.Close()
 
-	whs := csv.NewWriter(outHs)
-	whs.Comma = '|'
+	whs := bufio.NewWriter(outHs)
 	defer whs.Flush()
 
 	vk := make([]string, 2)  // k-fond kolonner
@@ -72,7 +74,7 @@ func main() {
 
 			if vk[1] == "1" {
 				vk[0] = fmt.Sprintf("0301%07d%03d", tnrd, exd)
-				err = wk.Write(vk)
+				_, err = wk.WriteString(fmt.Sprintf(KFONDUPDATE, vk[0]))
 				if err != nil {
 					fmt.Println(err)
 					os.Exit(1)
@@ -81,7 +83,7 @@ func main() {
 
 			if vhs[1] != "" {
 				vhs[0] = fmt.Sprintf("0301%07d%03d", tnrd, exd)
-				err = whs.Write(vhs)
+				_, err = whs.WriteString(fmt.Sprintf(HSUPDATE, vhs[1], vhs[0]))
 				if err != nil {
 					fmt.Println(err)
 					os.Exit(1)

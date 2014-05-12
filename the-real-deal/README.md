@@ -6,9 +6,7 @@
 
 * `line2iso.pl`: konverter fra marc linjeformat til iso
 
-* `emarc2csv.go`: konverterer fra emarc til csv (kun relevante verdier)
-
-* `inserts.pl`: diverse SQL inserts - informasjon som ikke kom med via bulkmarcimport
+* `emarc2sql.go`: generér div SQL update statements (informasjon som ikke kommer med via bulkmarcimport.pl)
 
 ## Installer avhengigheter (ubuntu)
 
