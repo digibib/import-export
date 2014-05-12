@@ -6,6 +6,8 @@
 
 * `line2iso.pl`: konverter fra marc linjeformat til iso
 
+* `emarc2csv.go`: konverterer fra emarc til csv (kun relevante verdier)
+
 ## Installer avhengigheter (ubuntu)
 
 * yaz:
