@@ -60,6 +60,8 @@
     ("LOST", "7", "borte i transport"),
     ("LOST", "8", "tapt, regning betalt"),
     ("LOST", "9", "vidvanke, registrert forsvunnet"),
+    ("LOST", "10", "retur eieravdeling (ved import"),
+    ("LOST", "11", "til henteavdeling (ved import)"),
     ("NOT_LOAN", "-1", "i bestilling"),
     ("NOT_LOAN", "2", "ny"),
     ("NOT_LOAN", "3", "til internt bruk"),

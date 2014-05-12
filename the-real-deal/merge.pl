@@ -255,6 +255,12 @@ RECORD: while ( my $record = $batch->next() ) {
                 # på vidvanke
                 case "V" { $field952->add_subfields( '1' => '9' ); }
 
+                # retur eieravdeling
+                case "a" { $field952->add_subfields( '1' => '10' ); }
+
+                # til hendeavdeling
+                case "y" { $field952->add_subfields( '1' => '11' ); }
+
             }
 
             # add the complete 952 field
