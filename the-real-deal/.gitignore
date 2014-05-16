@@ -3,3 +3,4 @@
 *.txt
 *.sql
 test.pl
+/stats

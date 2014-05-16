@@ -6,7 +6,7 @@
 
 * `line2iso.pl`: konverter fra marc linjeformat til iso
 
-* `emarc2sql.go`: generér div SQL update statements (informasjon som ikke kommer med via bulkmarcimport.pl)
+* `emarc2sql.go`: genererer diverse SQL update/insert statements (informasjon som ikke kommer med via bulkmarcimport.pl)
 
 ## Installer avhengigheter (ubuntu)
 
