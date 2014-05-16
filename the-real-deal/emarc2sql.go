@@ -7,12 +7,70 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
 	KFONDUPDATE = "UPDATE items SET booksellerid = 'kulturfond' WHERE barcode = '%s';\n"
 	HSUPDATE    = "UPDATE items SET itemcallnumber = '%s' WHERE barcode = '%s';\n"
+	ACTIVELOANS = "INSERT INTO issues (borrowernumber, itemnumber, branchcode, issuedate) SELECT borowwernumber, itemnumber, '%s', '%s' FROM;\n"
 )
+
+func explode(marcfield string) map[string]string {
+	m := make(map[string]string)
+	for _, pair := range strings.Split(marcfield, "$") {
+		id, val := pair[0:1], pair[1:len(pair)]
+		m[id] = val
+	}
+	return m
+}
+
+func dateFormat(m map[string]string) string {
+	// 2014-05-14 11:53:00
+
+	days, ok := m["a"]
+	if !ok {
+		fmt.Println("mangler utlaansdato")
+		os.Exit(1)
+	}
+
+	tid, ok := m["t"]
+	if !ok {
+		fmt.Println("mangler utlaanstidspunkt")
+		os.Exit(1)
+	}
+	if len(tid) == 5 {
+		tid = "0" + tid
+	}
+
+	daysd, err := strconv.Atoi(days)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	hourd, err := strconv.Atoi(tid[0:2])
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	mind, err := strconv.Atoi(tid[2:4])
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	secd, err := strconv.Atoi(tid[4:6])
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	//  func Date(year int, month Month, day, hour, min, sec, nsec int, loc *Location) Time
+	t := time.Date(1900, 01, 01, hourd, mind, secd, 00, time.UTC).Add(time.Hour * 24 * time.Duration(daysd))
+	return t.Format("2006-01-02 15:04:05")
+}
 
 func main() {
 	inFile := flag.String("i", "", "emarc input file")
@@ -51,8 +109,19 @@ func main() {
 	whs := bufio.NewWriter(outHs)
 	defer whs.Flush()
 
+	outLoans, err := os.Create("loans.sql")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer outLoans.Close()
+
+	wl := bufio.NewWriter(outLoans)
+	defer wl.Flush()
+
 	vk := make([]string, 2)  // k-fond kolonner
 	vhs := make([]string, 2) // hyllesignatur kolonner
+	var lm map[string]string // aktive lån
 
 	scanner := bufio.NewScanner(f)
 	var tnr, ex string
@@ -90,30 +159,49 @@ func main() {
 				}
 			}
 
+			if lm != nil {
+				// Ignorer "Depotlaan" TODO finnes det andre typer?
+				if lm["l"] == "Normal" {
+					branch, ok := lm["c"]
+					if !ok {
+						fmt.Printf("Aktivt lån på titnr: %d ex: %d mangler utlånsavdeling\n", tnrd, exd)
+						os.Exit(1)
+					}
+					_, err := wl.WriteString(fmt.Sprintf(ACTIVELOANS, branch, dateFormat(lm)))
+					if err != nil {
+						fmt.Println(err)
+						os.Exit(1)
+					}
+				}
+			}
+
 			// reset
 			vk[0] = ""
 			vk[1] = ""
 			vhs[0] = ""
 			vhs[1] = ""
+			lm = nil
 
 			continue
 		}
 
 		switch line[1:4] {
-		case "001":
+		case "001": // titelnr
 			tnr = line[4:len(line)]
-		case "002":
+		case "002": // eksnr
 			ex = line[4:len(line)]
-		case "016":
+		case "016": // kulturfond
 			if len(line) >= 9 {
 				vk[1] = line[8:9]
 			}
-		case "090":
+		case "090": // hyllesignatur
 			fields := strings.Split(line[7:len(line)], "$")
 			for i := range fields {
 				fields[i] = fields[i][1:len(fields[i])]
 			}
 			vhs[1] = strings.Join(fields, " ")
+		case "100": // aktivt lån
+			lm = explode(line[7:len(line)])
 		}
 
 	}
