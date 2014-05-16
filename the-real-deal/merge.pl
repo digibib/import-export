@@ -85,7 +85,7 @@ RECORD: while ( my $record = $batch->next() ) {
         || $status eq "i" # innlån
         || $status eq "l" # innlån av depoter
         || $status eq "t" # bestilling av depoter
-        # || $status eq "m" # midlertidig
+        || $status eq "m" # midlertidig
         )
     {
         # Skip records with theese statuses
