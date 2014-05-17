@@ -40,14 +40,6 @@ Start MySql slik at du du får tilgang til lokale filer:
 Last CSV fila inn i borrowers-tabellen:
 
 
-*NB dette forutsetter at alle lånekategorikodene er på plass i categories-tabellen*, hvis ikke vil dette feile med:
-
-```sql
-ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`koha_knakk`.`borrowers`, CONSTRAINT `borrowers_ibfk_1` FOREIGN KEY (`categorycode`) REFERENCES `categories` (`categorycode`))
-```
-
-TODO insert statements, elerl få dem inn i defaults.sql.
-
 ```sql
 LOAD DATA LOCAL INFILE '/vagrant/laaner.csv' INTO TABLE borrowers
 CHARACTER SET utf8
@@ -57,6 +49,14 @@ LINES TERMINATED BY '\n'
 country, phone, categorycode, B_address, B_zipcode, B_city,
 dateofbirth, sex, borrowernotes, dateexpiry, branchcode);
 ```
+
+*NB dette forutsetter at alle lånekategorikodene er på plass i categories-tabellen*, hvis ikke vil dette feile med:
+
+```sql
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`koha_knakk`.`borrowers`, CONSTRAINT `borrowers_ibfk_1` FOREIGN KEY (`categorycode`) REFERENCES `categories` (`categorycode`))
+```
+
+TODO insert statements, elerl få dem inn i defaults.sql.
 
 ### Katalog og Eksemplarregister
 
