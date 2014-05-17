@@ -194,7 +194,7 @@ func main() {
 			row[15] = rec["ln_melding"]
 
 			// 17: expiry
-			if rec["ln_sperres"] != "00/00/000" {
+			if rec["ln_sperres"] != "00/00/0000" {
 				expiry, err := time.Parse(noDateFormat, rec["ln_sperres"])
 				if err != nil {
 					row[16] = ""
