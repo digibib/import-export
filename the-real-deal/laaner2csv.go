@@ -78,7 +78,7 @@ func parseRecord(record bytes.Buffer) map[string]string {
 }
 
 func main() {
-	inFile := flag.String("i", "data.laaner.20140516-043220.txt", "input file (laanered)")
+	inFile := flag.String("i", "data.laaner.20140516-043220.txt", "input file (laanereg)")
 	outFile := flag.String("o", "laaner.csv", "output file (CSV)")
 	flag.Parse()
 
