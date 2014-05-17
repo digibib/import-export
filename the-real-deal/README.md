@@ -8,6 +8,8 @@
 
 * `emarc2sql.go`: genererer diverse SQL update/insert statements (informasjon som ikke kommer med via bulkmarcimport.pl)
 
+* `laaner2csv.go`: konverterer laaner-registeret til CSV
+
 ## Installer avhengigheter (ubuntu)
 
 * yaz:
@@ -18,14 +20,46 @@
 
 ## Import fra begynnelse til slutt
 
-### Katalog og Eksemplarregister
-
-#### 1. Eksportér data fra carl
+### Eksportér alle registere fra carl
 
   Kjør skriptet `/home/petterg/eksport.sh` på carl. Dette vil eksportere alle registerne til mappa `/usr/biblo/dumpreg `.
 
-  Kopier alle filene i denne mappe til egen maskin:
+  Kopier alle registerdumpene til egen maskin:
   `scp /usr/biblo/dumpreg <username>@<host>:/your/path`
+
+### Lånerregister
+
+Kjør følgende for å konvertere låneregisteret til CSV slik at det kan lastes rett in i MySQL:
+
+    go run laaner2csv -i=data.laaner.20140516-043220.txt -o=laaner.csv
+
+Start MySql slik at du du får tilgang til lokale filer:
+
+    mysql --local-infile=1 -u root
+
+Last CSV fila inn i borrowers-tabellen:
+
+
+*NB dette forutsetter at alle lånekategorikodene er på plass i categories-tabellen*, hvis ikke vil dette feile med:
+
+```sql
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`koha_knakk`.`borrowers`, CONSTRAINT `borrowers_ibfk_1` FOREIGN KEY (`categorycode`) REFERENCES `categories` (`categorycode`))
+```
+
+TODO insert statements, elerl få dem inn i defaults.sql.
+
+```sql
+LOAD DATA LOCAL INFILE '/vagrant/laaner.csv' INTO TABLE borrowers
+CHARACTER SET utf8
+FIELDS TERMINATED BY '|' OPTIONALLY ENCLOSED BY '\"'
+LINES TERMINATED BY '\n'
+(cardnumber, surname, firstname, address, address2, zipcode, city,
+country, phone, categorycode, B_address, B_zipcode, B_city,
+dateofbirth, sex, borrowernotes, dateexpiry, branchcode);
+```
+
+### Katalog og Eksemplarregister
+
 
 #### 2. Konvertér katalog til marcxml
 
