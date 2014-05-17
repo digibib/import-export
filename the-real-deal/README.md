@@ -43,7 +43,8 @@ Last CSV fila inn i borrowers-tabellen:
 ```sql
 LOAD DATA LOCAL INFILE '/vagrant/laaner.csv' INTO TABLE borrowers
 CHARACTER SET utf8
-FIELDS TERMINATED BY '|' OPTIONALLY ENCLOSED BY '\"'
+FIELDS TERMINATED BY '|'
+OPTIONALLY ENCLOSED BY '\"'
 LINES TERMINATED BY '\n'
 (cardnumber, surname, firstname, address, address2, zipcode, city,
 country, phone, categorycode, B_address, B_zipcode, B_city,
@@ -56,7 +57,7 @@ dateofbirth, sex, borrowernotes, dateexpiry, branchcode);
 ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`koha_knakk`.`borrowers`, CONSTRAINT `borrowers_ibfk_1` FOREIGN KEY (`categorycode`) REFERENCES `categories` (`categorycode`))
 ```
 
-TODO insert statements, elerl få dem inn i defaults.sql.
+TODO insert statements, eller få dem inn i defaults.sql.
 
 ### Katalog og Eksemplarregister
 
