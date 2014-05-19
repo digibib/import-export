@@ -46,9 +46,9 @@ CHARACTER SET utf8
 FIELDS TERMINATED BY '|'
 OPTIONALLY ENCLOSED BY '\"'
 LINES TERMINATED BY '\n'
-(cardnumber, surname, firstname, address, address2, zipcode, city,
+(borrowernumber, surname, firstname, address, address2, zipcode, city,
 country, phone, categorycode, B_address, B_zipcode, B_city,
-dateofbirth, sex, borrowernotes, dateexpiry, branchcode);
+dateofbirth, sex, borrowernotes, dateexpiry, branchcode, cardnumber);
 ```
 
 *NB dette forutsetter at alle lånekategorikodene er på plass i categories-tabellen*, hvis ikke vil dette feile med:

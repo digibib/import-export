@@ -15,7 +15,7 @@ import (
 
 /*
 ^                              borrowers table:
-ln_nr |14|                     cardnumber (TODO borrowernumber PK, mangler kortnr)
+ln_nr |14|                     borrowernumber
 ln_navn |Bla, bla |            surname, firstname
 ln_adr1 |Cgt. 3|               address
 ln_adr2 ||                     address2
@@ -41,9 +41,9 @@ ln_antpurr |0|                 -
 ln_alt_id ||                   ?
 
 CSV columns:
-cardnumber, surname, firstname, address, address2, zipcode, city,
+borrowernumber, surname, firstname, address, address2, zipcode, city,
 country, phone, categorycode, B_address, B_zipcode, B_city,
-dateofbirth, sex, borrowernotes, dateexpiry
+dateofbirth, sex, borrowernotes, dateexpiry, cardnumber
 
 */
 
@@ -106,7 +106,7 @@ func main() {
 	scanner := bufio.NewScanner(f)
 	var b bytes.Buffer
 	c := 0
-	row := make([]string, 18)
+	row := make([]string, 19)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "^" {
@@ -121,7 +121,7 @@ func main() {
 
 			//fmt.Printf("%v\n\n", rec)
 
-			// 1: cardnumber
+			// 1: borrowernumber
 			row[0] = rec["ln_nr"]
 
 			// 2, 3: surname, firstname
@@ -209,6 +209,10 @@ func main() {
 			//      setter til 'hutl' foreløbig
 			row[17] = "hutl"
 
+			// 19: cardnumber
+			// TODO mangler data, gjenbruker borrowernumber foreløbig
+			row[18] = rec["ln_nr"]
+
 			// Write CSV row
 			err = w.Write(row)
 			if err != nil {
@@ -225,13 +229,11 @@ func main() {
 			row[12] = "" // clear B_city
 
 			c += 1
-			if c == 100 {
-				fmt.Printf("%d Patron records processed and written out to file: %s\n", c, out.Name())
-				break
-			}
+			fmt.Printf("%d Patron records processed\r", c)
 		} else {
 			b.WriteString(line)
 		}
 	}
 	w.Flush()
+	fmt.Printf("%d Patron records processed and written out to file: %s\n", c, out.Name())
 }
