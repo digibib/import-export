@@ -149,7 +149,7 @@ Generer en CSV med lån fra `ex.csv` som ble laget i trinn 2 over:
 cat ex.csv | awk -F"|" '$9 ~ "u"' | cut -d"|" -f1,2,13 > laan.csv
 ```
 
-Importér til MySQL via en midlertidig tabell (husk å starte MySql med `--local-infile=1`) :
+Importér til MySQL via en midlertidig tabell (husk å starte MySQL med `--local-infile=1`) :
 
 ```sql
 CREATE TABLE laan (tnr int, ex int, lnr int);
@@ -160,10 +160,18 @@ LINES TERMINATED BY '\n'
 SHOW WARNINGS;
 ```
 
+Før du går videre, må du forsikre deg om at alle lånere finees i borrowers-tabellen. Hvis denne spørringen gir treff, må du enten slette de (bytt ut `SELECT *` med `DELETE`) eller opprette lånerne med de respektive lånenummer (borrowernumer) i borrowers-tabellen.
+
+```sql
+SELECT * FROM laan
+WHERE NOT EXISTS
+   (SELECT NULL FROM borrowers WHERE laan.lnr = borrowers.borrowernumber);
+```
+
 Populér issues-tabellen:
 
 ```sql
-INSERT INTO issues (borrowernumber, itemnumber)
+INSERT IGNORE INTO issues (borrowernumber, itemnumber)
 SELECT lnr AS borrowernumber, itemnumber
 FROM laan
 LEFT JOIN items ON (laan.tnr = items.biblionumber) AND (laan.ex = items.copynumber);
