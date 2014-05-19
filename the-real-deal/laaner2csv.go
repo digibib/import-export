@@ -77,6 +77,13 @@ func parseRecord(record bytes.Buffer) map[string]string {
 	return m
 }
 
+func orNULL(s string) string {
+	if s == "" {
+		return "NULL"
+	}
+	return s
+}
+
 func main() {
 	inFile := flag.String("i", "data.laaner.20140516-043220.txt", "input file (laanereg)")
 	outFile := flag.String("o", "laaner.csv", "output file (CSV)")
@@ -193,7 +200,7 @@ func main() {
 			// 16: borrowernotes
 			row[15] = rec["ln_melding"]
 
-			// 17: expiry
+			// 17: dateexpiry
 			if rec["ln_sperres"] != "00/00/0000" {
 				expiry, err := time.Parse(noDateFormat, rec["ln_sperres"])
 				if err != nil {
@@ -212,6 +219,14 @@ func main() {
 			// 19: cardnumber
 			// TODO mangler data, gjenbruker borrowernumber foreløbig
 			row[18] = rec["ln_nr"]
+
+			// Set nullable columns to NULL when they contain empty string
+			for i := range row {
+				// surname, city & address are not nullabel
+				if i != 1 && i != 6 && i != 3 {
+					row[i] = orNULL(row[i])
+				}
+			}
 
 			// Write CSV row
 			err = w.Write(row)
