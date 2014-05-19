@@ -33,7 +33,7 @@ Kjør følgende for å konvertere låneregisteret til CSV slik at det kan lastes
 
     go run laaner2csv -i=data.laaner.20140516-043220.txt -o=laaner.csv
 
-Start MySql slik at du du får tilgang til lokale filer:
+Start MySQL slik at du du får tilgang til lokale filer:
 
     mysql --local-infile=1 -u root
 
@@ -160,7 +160,7 @@ LINES TERMINATED BY '\n'
 SHOW WARNINGS;
 ```
 
-Før du går videre, må du forsikre deg om at alle lånere finees i borrowers-tabellen. Hvis denne spørringen gir treff, må du enten slette de (bytt ut `SELECT *` med `DELETE`) eller opprette lånerne med de respektive lånenummer (borrowernumer) i borrowers-tabellen.
+Før du går videre, må du forsikre deg om at alle lånere finnes i borrowers-tabellen. Hvis denne spørringen gir treff, må du enten slette de (bytt ut `SELECT *` med `DELETE`) eller opprette lånerne med de respektive lånenummer (borrowernumer) i borrowers-tabellen.
 
 ```sql
 SELECT * FROM laan
