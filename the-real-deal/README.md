@@ -59,6 +59,13 @@ ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint f
 
 TODO insert statements, eller få dem inn i defaults.sql.
 
+Du kan kontrollere evt. problematiske rader med `SHOW WARNINGS`:
+```sql
+Query OK, 525301 rows affected, 6 warnings (7 min 17.12 sec)
+Records: 525306  Deleted: 0  Skipped: 5  Warnings: 6
+SHOW WARNINGS;
+```
+
 ### Katalog og Eksemplarregister
 
 
