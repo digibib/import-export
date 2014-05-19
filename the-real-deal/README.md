@@ -175,9 +175,9 @@ INSERT INTO issues (borrowernumber, renewals, date_due, itemnumber)
 SELECT lnr AS borrowernumber,
        GREATEST(ORD(num_r)-48, 0) AS renewals,
        STR_TO_DATE(CONCAT(forfall, ' 23:59:00'), '%e/%c/%Y %H:%i:%s') AS date_due,
-       itemnumber
+       items.itemnumber
 FROM laan
-LEFT JOIN items ON (laan.tnr = items.biblionumber) AND (laan.ex = items.copynumber);
+INNER JOIN items ON CONCAT('0301', LPAD(laan.tnr, 7, '0'), LPAD(laan.ex, 3, '0')) = items.barcode;
 ```
 
 Når det er gjort, kan du slette den midlertidige tabellen:
