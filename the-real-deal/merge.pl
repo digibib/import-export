@@ -36,7 +36,7 @@ use constant {
     BIND     => 6,     # 952$h Volume and issue information for serial items
     AAR      => 7,     #
     STATUS   => 8,     # ?
-    RESSTAT  => 9,     # 952$m antal renewals
+    RESSTAT  => 9,     # i dersom til anvhenting
     LAANSTAT => 10,    # ? 952$l total checkouts (incl renewals?)
     UTLKODE  => 11,    # ? ikke til utlån
     LAANR    => 12,    # issues.borrowernumber
