@@ -146,17 +146,17 @@ Dette vil sørge for at slettede poster (identifisert med status 'd' i leader po
 Generer en CSV med lån fra `ex.csv` som ble laget i trinn 2 over:
 
 ```bash
-cat ex.csv | awk -F"|" '$9 ~ "u"' | cut -d"|" -f1,2,13 > laan.csv
+cat ex.csv | awk -F"|" '$9 ~ "u"' | cut -d"|" -f1,2,11,13,15 > laan.csv
 ```
 
 Importér til MySQL via en midlertidig tabell (husk å starte MySQL med `--local-infile=1`) :
 
 ```sql
-CREATE TABLE laan (tnr int, ex int, lnr int);
+CREATE TABLE laan (tnr INT, ex INT, num_r CHAR(1), lnr INT, forfall CHAR(10));
 LOAD DATA LOCAL INFILE '/vagrant/laan.csv' INTO TABLE laan
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n'
-(tnr, ex, lnr);
+(tnr, ex, num_r, lnr, forfall);
 SHOW WARNINGS;
 ```
 
@@ -171,8 +171,11 @@ WHERE NOT EXISTS
 Populér issues-tabellen:
 
 ```sql
-INSERT IGNORE INTO issues (borrowernumber, itemnumber)
-SELECT lnr AS borrowernumber, itemnumber
+INSERT INTO issues (borrowernumber, renewals, date_due, itemnumber)
+SELECT lnr AS borrowernumber,
+       GREATEST(ORD(num_r)-48, 0) AS renewals,
+       STR_TO_DATE(CONCAT(forfall, ' 23:59:00'), '%e/%c/%Y %H:%i:%s') AS date_due,
+       itemnumber
 FROM laan
 LEFT JOIN items ON (laan.tnr = items.biblionumber) AND (laan.ex = items.copynumber);
 ```
