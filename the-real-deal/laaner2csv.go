@@ -183,9 +183,9 @@ func main() {
 			// 15: sex
 			switch rec["ln_kjoenn"] {
 			case "k":
-				row[14] = "M" // male
+				row[14] = "F" // male
 			case "m":
-				row[14] = "F" // female
+				row[14] = "M" // female
 			default:
 				row[14] = "" // no answer
 			}
