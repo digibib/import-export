@@ -69,17 +69,17 @@ SHOW WARNINGS;
 ### Katalog og Eksemplarregister
 
 
-#### 2. Konvertér katalog til marcxml
+#### 1. Konvertér katalog til marcxml
 
    `hoggestabe -i=data.vmarc.txt -o=bib.marcxml`
 
-#### 3. Konvertér exemp registeret til CSV:
+#### 2. Konvertér exemp registeret til CSV:
 
    `./ex2csv.sh <exemp-eksport> <ex.csv>`
 
    Skriptet vil liste opp eventuelle linjer som har avvikende antall kolonner. *Disse må du fjerne eller fikse manuelt før du går videre.*
 
-#### 4. Slå sammen katalog- og eksemplardata.
+#### 3. Slå sammen katalog- og eksemplardata.
 
    Bygg eksemplarata inn i 952-feltet:
 
@@ -87,7 +87,7 @@ SHOW WARNINGS;
 
    Du vil nå ha en fil `out.marcxml` på ca 2 GB klar til import.
 
-#### 5. Sett opp autoriserte verdier i Koha:
+#### 4. Sett opp autoriserte verdier i Koha:
    ```sql
    DELETE FROM authorised_values WHERE category IN ("WITHDRAWN", "LOST", "NOT_LOAN", "RESTRICTED", "DAMAGED");
    INSERT INTO authorised_values (category, authorised_value, lib) VALUES
@@ -115,14 +115,14 @@ SHOW WARNINGS;
     ("RESTRICTED", "2", "referanseverk");
    ```
 
-#### 6. Importér katalogen inn i Koha når du går fra jobb/legger deg om kvelden (tar laaang tid):
+#### 5. Importér katalogen inn i Koha når du går fra jobb/legger deg om kvelden (tar laaang tid):
 
 NB: for at tittelnummrene skal brukes som biblioitemnumber, må du `git bz apply 6113`.
 
   ```bash
   sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl /usr/local/src/kohaclone/misc/migration_tools/bulkmarcimport.pl -d -file /vagrant/out.marcxml -g 001 -v 2 -b -m=MARCXML
 ```
-#### 7. SQL updates
+#### 6. SQL updates
 Ikke all informasjon kommer med ved bulkmarcimporten. Noe trenger manuell oppdatering:
 
 ```go run emarc2sql.go -i data.emarc.20140426-140347.txt```
@@ -134,9 +134,7 @@ Dette generer noen sql-filer som kan importeres rett i databasen:
   mysql -u root koha_knakk < /vagrant/kfond.sql
 ```
 
-
-
-#### 8. Slett "slettede poster"
+#### 7. Slett "slettede poster"
 
 Først: `git bz apply 11084`, så
 
@@ -144,6 +142,38 @@ Først: `git bz apply 11084`, så
 
 Dette vil sørge for at slettede poster (identifisert med status 'd' i leader posisjon 5) havner i `deletedbiblio` og `deletedbiblioitems` tabellene.
 
+### 8. Aktive lån
+Generer en CSV med lån fra `ex.csv` som ble laget i trinn 2 over:
+
+```bash
+cat ex.csv | awk -F"|" '$9 ~ "u"' | cut -d"|" -f1,2,13 > laan.csv
+```
+
+Importér til MySQL via en midlertidig tabell (husk å starte MySql med `--local-infile=1`) :
+
+```sql
+CREATE TABLE laan (tnr int, ex int, lnr int);
+LOAD DATA LOCAL INFILE '/vagrant/laan.csv' INTO TABLE laan
+FIELDS TERMINATED BY '|'
+LINES TERMINATED BY '\n'
+(tnr, ex, lnr);
+SHOW WARNINGS;
+```
+
+Populér issues-tabellen:
+
+```sql
+INSERT INTO issues (borrowernumber, itemnumber)
+SELECT lnr AS borrowernumber, itemnumber
+FROM laan
+LEFT JOIN items ON (laan.tnr = items.biblionumber) AND (laan.ex = items.copynumber);
+```
+
+Når det er gjort, kan du slette den midlertidige tabellen:
+
+```sql
+DROP TABLE laan;
+```
 
 ### Autoritetsregister
 
