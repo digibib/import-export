@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -50,6 +51,11 @@ dateofbirth, sex, borrowernotes, dateexpiry, cardnumber
 const (
 	noDateFormat    = "02/01/2006"
 	mysqlDateFormat = "2006-01-02"
+)
+
+var (
+	rLostCard   = regexp.MustCompile("f|F")
+	rBadAddress = regexp.MustCompile("m|M")
 )
 
 func parseRecord(record bytes.Buffer) map[string]string {
@@ -113,7 +119,7 @@ func main() {
 	scanner := bufio.NewScanner(f)
 	var b bytes.Buffer
 	c := 0
-	row := make([]string, 19)
+	row := make([]string, 21)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "^" {
@@ -220,6 +226,16 @@ func main() {
 			// TODO mangler data, gjenbruker borrowernumber foreløbig
 			row[18] = rec["ln_nr"]
 
+			// 20: lost
+			if rLostCard.MatchString(rec["ln_friobs"] + rec["ln_obs"]) {
+				row[19] = "1"
+			}
+
+			// 21: gonenoaddress
+			if rBadAddress.MatchString(rec["ln_friobs"] + rec["ln_obs"]) {
+				row[20] = "1"
+			}
+
 			// Set nullable columns to NULL when they contain empty string
 			for i := range row {
 				// surname, city & address are not nullabel
@@ -242,6 +258,8 @@ func main() {
 			row[6] = ""  // clear city
 			row[11] = "" // clear B_zipcode
 			row[12] = "" // clear B_city
+			row[19] = "" // lost bit
+			row[20] = "" // bad address bit
 
 			c += 1
 			fmt.Printf("%d Patron records processed\r", c)
