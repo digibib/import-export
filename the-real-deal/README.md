@@ -173,7 +173,7 @@ Populér issues-tabellen:
 
 ```sql
 INSERT INTO issues (borrowernumber, renewals, date_due, itemnumber)
-SELECT lnr AS borrowernumber,
+SELECT DISTINCT lnr AS borrowernumber,
        GREATEST(ORD(num_r)-48, 0) AS renewals,
        STR_TO_DATE(CONCAT(forfall, ' 23:59:00'), '%e/%c/%Y %H:%i:%s') AS date_due,
        items.itemnumber
