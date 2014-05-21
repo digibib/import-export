@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -13,7 +14,7 @@ import (
 const (
 	KFONDUPDATE = "UPDATE items SET booksellerid = 'kulturfond' WHERE barcode = '%s';\n"
 	HSUPDATE    = "UPDATE items SET itemcallnumber = '%s' WHERE barcode = '%s';\n"
-	ACTIVELOANS = "INSERT INTO issues (borrowernumber, itemnumber, branchcode, issuedate) SELECT borowwernumber, itemnumber, '%s', '%s' FROM;\n"
+	ACTIVELOANS = "UPDATE issues a INNER JOIN items b ON a.itemnumber = b.itemnumber SET branchcode ='%s', issuedate='%s' WHERE b.biblioitemnumber = '%d' AND b.copynumber ='%d';\n"
 )
 
 func explode(marcfield string) map[string]string {
@@ -25,19 +26,17 @@ func explode(marcfield string) map[string]string {
 	return m
 }
 
-func dateFormat(m map[string]string) string {
-	// 2014-05-14 11:53:00
+func dateFormat(m map[string]string) (string, error) {
+	// MYSQL format: 2014-05-14 11:53:00
 
 	days, ok := m["a"]
 	if !ok {
-		fmt.Println("mangler utlaansdato")
-		os.Exit(1)
+		return "", errors.New("mangler utlaansdato")
 	}
 
 	tid, ok := m["t"]
 	if !ok {
-		fmt.Println("mangler utlaanstidspunkt")
-		os.Exit(1)
+		return "", errors.New("mangler utlaanstidspunkt")
 	}
 	if len(tid) == 5 {
 		tid = "0" + tid
@@ -69,7 +68,7 @@ func dateFormat(m map[string]string) string {
 
 	//  func Date(year int, month Month, day, hour, min, sec, nsec int, loc *Location) Time
 	t := time.Date(1900, 01, 01, hourd, mind, secd, 00, time.UTC).Add(time.Hour * 24 * time.Duration(daysd))
-	return t.Format("2006-01-02 15:04:05")
+	return t.Format("2006-01-02 15:04:05"), nil
 }
 
 func main() {
@@ -161,18 +160,23 @@ func main() {
 
 			if lm != nil {
 				// Ignorer "Depotlaan" TODO finnes det andre typer?
-				if lm["l"] == "Normal" {
-					branch, ok := lm["c"]
-					if !ok {
-						fmt.Printf("Aktivt lån på titnr: %d ex: %d mangler utlånsavdeling\n", tnrd, exd)
-						os.Exit(1)
-					}
-					_, err := wl.WriteString(fmt.Sprintf(ACTIVELOANS, branch, dateFormat(lm)))
+				//if lm["l"] != "Depotlaan" {
+				branch, ok := lm["c"]
+				if !ok {
+					fmt.Printf("Aktivt lån på titnr: %d ex: %d mangler utlånsavdeling, settes til 'hutl'\n", tnrd, exd)
+					branch = "hutl"
+				}
+				d, err := dateFormat(lm)
+				if err != nil {
+					fmt.Printf("Aktivt lån på titnr: %d ex: %d mangler utlånsdato, hopper over\n", tnrd, exd)
+				} else {
+					_, err := wl.WriteString(fmt.Sprintf(ACTIVELOANS, branch, d, tnrd, exd))
 					if err != nil {
 						fmt.Println(err)
 						os.Exit(1)
 					}
 				}
+				//}
 			}
 
 			// reset

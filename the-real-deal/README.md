@@ -187,6 +187,18 @@ Når det er gjort, kan du slette den midlertidige tabellen:
 DROP TABLE laan;
 ```
 
+Oppdater issues-tabellen med fila `loans.sql` som ble generert i trinn 6:
+
+```bash
+mysql -u root koha_knakk < loans.sql
+```
+
+Slett lån som ikke har informasjon fra emarc: (TODO sjekk dette)
+
+```sql
+DELTE FROM issues WHERE branchcode IS NULL;
+```
+
 ### Autoritetsregister
 
 pga. unicodeprob må det gjøres i to omganger:
