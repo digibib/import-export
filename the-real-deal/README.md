@@ -196,7 +196,7 @@ mysql -u root koha_knakk < loans.sql
 Slett lån som ikke har informasjon fra emarc: (TODO sjekk dette)
 
 ```sql
-DELTE FROM issues WHERE branchcode IS NULL;
+DELETE FROM issues WHERE branchcode IS NULL;
 ```
 
 ### Autoritetsregister
