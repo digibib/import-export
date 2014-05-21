@@ -143,7 +143,7 @@ Først: `git bz apply 11084`, så
 
 Dette vil sørge for at slettede poster (identifisert med status 'd' i leader posisjon 5) havner i `deletedbiblio` og `deletedbiblioitems` tabellene.
 
-### 8. Aktive lån
+#### 8. Aktive lån
 Generer en CSV med lån fra `ex.csv` som ble laget i trinn 2 over:
 
 ```bash
