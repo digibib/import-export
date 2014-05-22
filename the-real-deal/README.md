@@ -12,6 +12,8 @@
 
 * `lmarc2csv.go`: ekstraherer ut data fra lmarc, for import til MySQL
 
+* `lnel2sql.go`: hent epostadresser fra lnel-registeret, for import til MySQL
+
 ## Installer avhengigheter (ubuntu)
 
 * yaz:
@@ -30,6 +32,8 @@
   `scp /usr/biblo/dumpreg <username>@<host>:/your/path`
 
 ### Lånerregister
+
+#### 1. Laaner
 
 Kjør følgende for å konvertere låneregisteret til CSV slik at det kan lastes rett in i MySQL:
 
@@ -68,6 +72,16 @@ Query OK, 525301 rows affected, 6 warnings (7 min 17.12 sec)
 Records: 525306  Deleted: 0  Skipped: 5  Warnings: 6
 SHOW WARNINGS;
 ```
+
+#### 2. Lnel
+
+Ekstraher epost-adresser fra lnel-registeret og oppdater borrowers-tabellen:
+```bash
+go run lnel2sql.go -i=data.lnel.20140516-144030.txt -o=lnel.sql
+mysql -u root koha_knakk < lnel.sql
+```
+
+#### 3. Lmarc
 
 ### Katalog og Eksemplarregister
 
