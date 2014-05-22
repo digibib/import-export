@@ -10,6 +10,8 @@
 
 * `laaner2csv.go`: konverterer laaner-registeret til CSV
 
+* `lmarc2csv.go`: ekstraherer ut data fra lmarc, for import til MySQL
+
 ## Installer avhengigheter (ubuntu)
 
 * yaz:
