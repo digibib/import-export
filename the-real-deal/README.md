@@ -193,12 +193,6 @@ Oppdater issues-tabellen med fila `loans.sql` som ble generert i trinn 6:
 mysql -u root koha_knakk < loans.sql
 ```
 
-Slett lån som ikke har informasjon fra emarc: (TODO sjekk dette)
-
-```sql
-DELETE FROM issues WHERE branchcode IS NULL;
-```
-
 ### Autoritetsregister
 
 pga. unicodeprob må det gjøres i to omganger:
