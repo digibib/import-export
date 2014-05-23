@@ -9,6 +9,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"code.google.com/p/go.crypto/bcrypt"
 )
 
 const MaxRecords = 400
@@ -58,7 +60,7 @@ func main() {
 	scanner := bufio.NewScanner(in)
 
 	c := 0
-	row := make([]string, 9)
+	row := make([]string, 10)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -133,6 +135,15 @@ func main() {
 				row[7] = fields["a"] // borrowers.mobile
 			case "mobilsms":
 				row[8] = fields["a"] // borrowers.smsalertnumber
+			}
+		case "261": // PIN-kode
+			fields := explode(line[4:len(line)])
+			if fields["a"] != "" {
+				pin, err := bcrypt.GenerateFromPassword([]byte(fields["a"]), 8)
+				if err != nil {
+					log.Fatal(err)
+				}
+				row[9] = string(pin)
 			}
 
 		}
