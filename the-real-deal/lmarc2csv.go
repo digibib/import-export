@@ -31,7 +31,7 @@ func orNULL(s string) string {
 
 func main() {
 	inFile := flag.String("i", "data.lmarc.20140520-104911.txt", "input file (lmarc)")
-	outFile := flag.String("o", "lmarc.sql", "output file (sql)")
+	outFile := flag.String("o", "lmarc.csv", "output file (csv)")
 	flag.Parse()
 
 	if *inFile == "" || *outFile == "" {
@@ -98,7 +98,7 @@ func main() {
 			row[0] = fmt.Sprintf("%d", lnr)
 		case "105": // foresatte
 			fields := explode(line[4:len(line)])
-			row[1] = fields["a"] // borrowers.borrowernumber
+			row[1] = fields["a"] // borrowers.contactname
 			// TODO umulig å splitte i firstname+lastname p.g.a ulik formatering:
 			//   *105  $aCecilie Gudmestad (ped. leder)
 			//   *105  $amor Ingeborg Neumann 11223345
