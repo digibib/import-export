@@ -106,6 +106,13 @@ UPDATE lmarc SET nlnummer=lnr WHERE nlnummer IS NULL;
 UPDATE lmarc SET avd='ukjent' WHERE avd IS NULL;
 ```
 
+Kontrollér at alle avdelinger finnes i branches:
+```sql
+SELECT DISTINCT avd FROM lmarc
+WHERE NOT EXISTS
+   (SELECT NULL FROM branches WHERE branches.branchcode = lmarc.avd);
+```
+
 Oppdatér borrowers-tabellen med info fra det midlertidige lmarc-tabellen:
 ```sql
 UPDATE borrowers a JOIN lmarc b ON a.borrowernumber = b.lnr
