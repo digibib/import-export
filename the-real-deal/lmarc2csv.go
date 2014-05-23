@@ -60,7 +60,7 @@ func main() {
 	scanner := bufio.NewScanner(in)
 
 	c := 0
-	row := make([]string, 10)
+	row := make([]string, 11)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -152,6 +152,9 @@ func main() {
 				// 0 = forever, 1 = default, 2 = never
 				row[9] = "0" // borrowers.privacy
 			}
+		case "600": // Nasjonalt lånenummer
+			fields := explode(line[4:len(line)])
+			row[10] = fields["a"] // borrowers.cardnumber + borrowers.userid
 
 		}
 
