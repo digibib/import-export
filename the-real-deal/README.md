@@ -114,6 +114,7 @@ WHERE NOT EXISTS
 ```
 
 Slett poster fra lmarc som ikke finnes i laaner:
+
 ```sql
 DELETE FROM lmarc
 WHERE NOT EXISTS
@@ -121,6 +122,7 @@ WHERE NOT EXISTS
 ```sql
 
 Oppdatér borrowers-tabellen med info fra det midlertidige lmarc-tabellen:
+
 ```sql
 UPDATE borrowers a JOIN lmarc b ON a.borrowernumber = b.lnr
 SET a.contactname = b.foresatt, a.branchcode = b.avd,
