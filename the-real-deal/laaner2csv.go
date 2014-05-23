@@ -85,7 +85,7 @@ func parseRecord(record bytes.Buffer) map[string]string {
 
 func orNULL(s string) string {
 	if s == "" {
-		return "NULL"
+		return `\N`
 	}
 	return s
 }
