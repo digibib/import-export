@@ -13,8 +13,6 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 )
 
-const MaxRecords = 400
-
 func explode(marcfield string) map[string]string {
 	m := make(map[string]string)
 	for _, pair := range strings.Split(marcfield, "$") {
@@ -87,9 +85,6 @@ func main() {
 
 			c = c + 1
 			fmt.Printf("%d records processed\r", c)
-			if c == MaxRecords {
-				break
-			}
 
 			continue
 		}
@@ -159,5 +154,7 @@ func main() {
 		}
 
 	}
+
+	fmt.Printf("Done with %d records.", c)
 
 }
