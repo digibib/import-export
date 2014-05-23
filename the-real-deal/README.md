@@ -100,7 +100,8 @@ SHOW WARNINGS;
 ```
 
 Set lånekortnummer lik lånernummer der det mangler og set avdeling til 'ukjent' der den mangler:
-```
+
+```sql
 UPDATE lmarc SET nlnummer=lnr WHERE nlnummer IS NULL;
 UPDATE lmarc SET avd='ukjent' WHERE avd IS NULL;
 ```
