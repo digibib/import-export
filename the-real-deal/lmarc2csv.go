@@ -26,7 +26,8 @@ func orNULL(s string) string {
 	if s == "" {
 		return `\N`
 	}
-	return s
+	// remove any pipe character
+	return strings.Replace(s, "|", "", -1)
 }
 
 func main() {
