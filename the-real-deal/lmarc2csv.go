@@ -26,7 +26,7 @@ func explode(marcfield string) map[string]string {
 
 func orNULL(s string) string {
 	if s == "" {
-		return "NULL"
+		return `\N`
 	}
 	return s
 }
@@ -69,7 +69,7 @@ func main() {
 			for i := range row {
 				row[i] = orNULL(row[i])
 			}
-			if row[9] == "NULL" {
+			if row[9] == `\N` {
 				// borrowers.privacy default to 1
 				row[9] = "1"
 			}
@@ -80,15 +80,14 @@ func main() {
 				log.Fatal(err)
 			}
 
-			fmt.Printf("%v\n", row)
-
-			c = c + 1
-			if c == MaxRecords {
-				break
-			}
-
 			for i := range row {
 				row[i] = ""
+			}
+
+			c = c + 1
+			fmt.Printf("%d records processed\r", c)
+			if c == MaxRecords {
+				break
 			}
 
 			continue
