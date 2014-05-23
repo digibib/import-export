@@ -83,6 +83,38 @@ mysql -u root koha_knakk < lnel.sql
 
 #### 3. Lmarc
 
+Hent ut informasjon fra Lmarc til CSV (tar lang tid p.g.a kryptering av PIN-koder med bcrypt):
+
+```bash
+go run lmarc2csv.go -i=data.lmarc.20140520-104911.txt -o=lmarc.csv
+```
+
+Last inn i midlertidig tabell i MySQL (husk å starte MySQL med `--local-infile=1`):
+
+```sql
+CREATE TABLE lmarc (lnr INT, foresatt VARCHAR(128), avd VARCHAR(10), mld TEXT, sjekkpost INT, tlfjobb VARCHAR(32), tlfmobil VARCHAR(32), tlfsms VARCHAR(32), pin VARCHAR(60), historikk INT, nlnummer VARCHAR(16)) DEFAULT CHARSET=utf8;
+LOAD DATA LOCAL INFILE '/vagrant/lmarc.csv' INTO TABLE lmarc
+FIELDS TERMINATED BY '|'
+LINES TERMINATED BY '\n';
+SHOW WARNINGS;
+```
+
+Set lånekortnummer lik lånernummer der det mangler og set avdeling til 'ukjent' der den mangler:
+```
+UPDATE lmarc SET nlnummer=lnr WHERE nlnummer IS NULL;
+UPDATE lmarc SET avd='ukjent' WHERE avd IS NULL;
+```
+
+Oppdatér borrowers-tabellen med info fra det midlertidige lmarc-tabellen:
+```sql
+UPDATE borrowers a JOIN lmarc b ON a.borrowernumber = b.lnr
+SET a.contactname = b.foresatt, a.branchcode = b.avd,
+    a.borrowernotes = b.mld, a.gonenoaddress = b.sjekkpost,
+    a.phonepro = b.tlfjobb, a.mobile = b.tlfmobil, a.smsalertnumber = b.tlfsms,
+    a.password = b.pin, a.privacy = b.historikk,
+    a.cardnumber = b.nlnummer, a.userid = b.nlnummer;
+```
+
 ### Katalog og Eksemplarregister
 
 
