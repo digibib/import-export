@@ -113,6 +113,13 @@ WHERE NOT EXISTS
    (SELECT NULL FROM branches WHERE branches.branchcode = lmarc.avd);
 ```
 
+Slett poster fra lmarc som ikke finnes i laaner:
+```sql
+DELETE FROM lmarc
+WHERE NOT EXISTS
+   (SELECT NULL FROM borrowers WHERE borrowernumber = lmarc.lnr);
+```sql
+
 Oppdatér borrowers-tabellen med info fra det midlertidige lmarc-tabellen:
 ```sql
 UPDATE borrowers a JOIN lmarc b ON a.borrowernumber = b.lnr
