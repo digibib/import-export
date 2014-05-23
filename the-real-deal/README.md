@@ -119,7 +119,7 @@ Slett poster fra lmarc som ikke finnes i laaner:
 DELETE FROM lmarc
 WHERE NOT EXISTS
    (SELECT NULL FROM borrowers WHERE borrowernumber = lmarc.lnr);
-```sql
+```
 
 Oppdatér borrowers-tabellen med info fra det midlertidige lmarc-tabellen:
 
