@@ -116,25 +116,21 @@ func main() {
 			// feltet er repeterbart; trekkes sammen til en streng
 			// TODO kan løses bedre
 			row[3] = row[3] + fields["b"] + " " // borrowers.borrowernotes
-		case "190": // fødselsnummer
-			// TODO skal dette ligge i klartekst?
-			fields := explode(line[4:len(line)])
-			row[4] = fields["a"] // ???
 		case "200": // sjekk postadresse
 			fields := explode(line[4:len(line)])
 			if fields["s"] == "1" {
-				row[5] = "1" // borrowers.gonenoaddress
+				row[4] = "1" // borrowers.gonenoaddress
 			}
 		case "240": // telefonnr (repeterbart felt)
 			fields := explode(line[4:len(line)])
 			// $c = fax|jobb|mobil|mobilsms
 			switch fields["c"] {
 			case "jobb":
-				row[6] = fields["a"] // borrowers.phonepro
+				row[5] = fields["a"] // borrowers.phonepro
 			case "mobil":
-				row[7] = fields["a"] // borrowers.mobile
+				row[6] = fields["a"] // borrowers.mobile
 			case "mobilsms":
-				row[8] = fields["a"] // borrowers.smsalertnumber
+				row[7] = fields["a"] // borrowers.smsalertnumber
 			}
 		case "261": // PIN-kode
 			fields := explode(line[4:len(line)])
@@ -143,7 +139,7 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				row[9] = string(pin)
+				row[8] = string(pin)
 			}
 
 		}
