@@ -253,13 +253,9 @@ func main() {
 			//fmt.Printf("%v\n", row)
 
 			b.Reset()
-			row[2] = ""  // clear firstname for next iteration of loop
-			row[5] = ""  // clear zipcode
-			row[6] = ""  // clear city
-			row[11] = "" // clear B_zipcode
-			row[12] = "" // clear B_city
-			row[19] = "" // lost bit
-			row[20] = "" // bad address bit
+			for i := range row {
+				row[i] = ""
+			}
 
 			c += 1
 			fmt.Printf("%d Patron records processed\r", c)
