@@ -69,6 +69,10 @@ func main() {
 			for i := range row {
 				row[i] = orNULL(row[i])
 			}
+			if row[9] == "NULL" {
+				// borrowers.privacy default to 1
+				row[9] = "1"
+			}
 
 			// Write CSV row
 			err = w.Write(row)
@@ -86,6 +90,7 @@ func main() {
 			for i := range row {
 				row[i] = ""
 			}
+
 			continue
 		}
 
@@ -97,7 +102,7 @@ func main() {
 				log.Printf("cannot parse borrowernumber: %v\n", line)
 				continue
 			}
-			row[0] = fmt.Sprintf("%d", lnr)
+			row[0] = fmt.Sprintf("%d", lnr) // borrowers.borrowernumber
 		case "105": // foresatte
 			fields := explode(line[4:len(line)])
 			row[1] = fields["a"] // borrowers.contactname
@@ -139,7 +144,13 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				row[8] = string(pin)
+				row[8] = string(pin) // borrowers.password
+			}
+		case "300": // Lagre historikk
+			fields := explode(line[4:len(line)])
+			if fields["a"] == "1" {
+				// 0 = forever, 1 = default, 2 = never
+				row[9] = "0" // borrowers.privacy
 			}
 
 		}
