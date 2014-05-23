@@ -56,6 +56,7 @@ func main() {
 
 	w := csv.NewWriter(out)
 	w.Comma = '|'
+	defer w.Flush()
 
 	scanner := bufio.NewScanner(in)
 
