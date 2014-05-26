@@ -99,6 +99,14 @@ LINES TERMINATED BY '\n';
 SHOW WARNINGS;
 ```
 
+Slett poster fra lmarc som ikke finnes i laaner:
+
+```sql
+DELETE FROM lmarc
+WHERE NOT EXISTS
+   (SELECT NULL FROM borrowers WHERE borrowernumber = lmarc.lnr);
+```
+
 Set lånekortnummer lik lånernummer der det mangler og set avdeling til 'ukjent' der den mangler:
 
 ```sql
@@ -111,14 +119,6 @@ Kontrollér at alle avdelinger finnes i branches:
 SELECT DISTINCT avd FROM lmarc
 WHERE NOT EXISTS
    (SELECT NULL FROM branches WHERE branches.branchcode = lmarc.avd);
-```
-
-Slett poster fra lmarc som ikke finnes i laaner:
-
-```sql
-DELETE FROM lmarc
-WHERE NOT EXISTS
-   (SELECT NULL FROM borrowers WHERE borrowernumber = lmarc.lnr);
 ```
 
 Oppdatér borrowers-tabellen med info fra det midlertidige lmarc-tabellen:
