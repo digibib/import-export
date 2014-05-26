@@ -122,6 +122,15 @@ WHERE NOT EXISTS
    (SELECT NULL FROM branches WHERE branches.branchcode = lmarc.avd);
 ```
 
+Rydd opp i det, f.eks ved å sette avdeling til ukjent:
+```sql
+UPDATE lmarc
+  SET avd='ukjent'
+  WHERE NOT EXISTS
+     (SELECT NULL FROM branches WHERE branches.branchcode = lmarc.avd);
+```
+
+
 Oppdatér borrowers-tabellen med info fra det midlertidige lmarc-tabellen:
 
 ```sql
