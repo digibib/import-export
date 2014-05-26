@@ -92,8 +92,9 @@ go run lmarc2csv.go -i=data.lmarc.20140520-104911.txt -o=lmarc.csv
 Last inn i midlertidig tabell i MySQL (husk å starte MySQL med `--local-infile=1`):
 
 ```sql
-CREATE TABLE lmarc (lnr INT, foresatt VARCHAR(128), avd VARCHAR(10), mld TEXT, sjekkpost INT, tlfjobb VARCHAR(64), tlfmobil VARCHAR(64), tlfsms VARCHAR(64), pin VARCHAR(60), historikk INT, nlnummer VARCHAR(16)) DEFAULT CHARSET=utf8;
+CREATE TABLE lmarc (lnr INT, foresatt VARCHAR(128), avd VARCHAR(10), mld TEXT, sjekkpost INT, tlfjobb VARCHAR(64), tlfmobil VARCHAR(64), tlfsms VARCHAR(64), pin VARCHAR(60), historikk INT, nlnummer VARCHAR(16));
 LOAD DATA LOCAL INFILE '/vagrant/lmarc.csv' INTO TABLE lmarc
+CHARACTER SET utf8
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n';
 SHOW WARNINGS;
