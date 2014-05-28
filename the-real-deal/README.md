@@ -248,12 +248,12 @@ Populér issues-tabellen:
 
 ```sql
 INSERT INTO issues (borrowernumber, renewals, date_due, itemnumber)
-SELECT DISTINCT lnr AS borrowernumber,
+SELECT lnr AS borrowernumber,
        GREATEST(ORD(num_r)-48, 0) AS renewals,
        STR_TO_DATE(CONCAT(forfall, ' 23:59:00'), '%e/%c/%Y %H:%i:%s') AS date_due,
        items.itemnumber
 FROM laan
-INNER JOIN items ON CONCAT('0301', LPAD(laan.tnr, 7, '0'), LPAD(laan.ex, 3, '0')) = items.barcode;
+INNER JOIN items ON laan.ex = items.copynumber AND laan.tnr = items.biblioitemnumber;
 ```
 
 Når det er gjort, kan du slette den midlertidige tabellen:
