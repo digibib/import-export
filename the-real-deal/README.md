@@ -1,6 +1,6 @@
 ## Scripts
 
-* `ex2csv.sh`: konverter eksemplardata til CSV, slik at det er mer håndterlig videre
+* `ex2csv.go`: konverter eksemplardata til CSV, slik at det er mer håndterlig videre
 
 * `merge.pl`: bygger inn eksemplardata i 952-feltet
 
@@ -151,9 +151,7 @@ SET a.contactname = b.foresatt, a.branchcode = b.avd,
 
 #### 2. Konvertér exemp registeret til CSV:
 
-   `./ex2csv.sh <exemp-eksport> <ex.csv>`
-
-   Skriptet vil liste opp eventuelle linjer som har avvikende antall kolonner. *Disse må du fjerne eller fikse manuelt før du går videre.*
+   `go run ex2csv.go <exemp-eksport> <ex.csv>`
 
 #### 3. Slå sammen katalog- og eksemplardata.
 
