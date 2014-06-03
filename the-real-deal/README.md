@@ -266,6 +266,40 @@ Oppdater issues-tabellen med fila `loans.sql` som ble generert i trinn 6:
 mysql -u root koha_knakk < loans.sql
 ```
 
+#### 9. Reserveringer
+
+Generér CSV:
+
+```bash
+go run res2csv.go -i=data.res.20140603-042058.txt -o=res.csv
+```
+
+Importer til en midlertidig tabell i MySQL:
+
+```sql
+CREATE TABLE res (biblo INT, pri INT, copy INT, stat CHAR, lnr INT, resdate DATE, expdate DATE, avd VARCHAR(16) );
+LOAD DATA LOCAL INFILE '/vagrant/res.csv' INTO TABLE res
+FIELDS TERMINATED BY '|'
+LINES TERMINATED BY '\n';
+SHOW WARNINGS;
+```
+
+Put reserveringer i `reserves`-tabellen:
+
+```sql
+-- oppdatér itemnumber
+UPDATE res a
+  JOIN items b ON a.biblo = b.biblionumber AND a.copy = b.copynumber
+SET a.copy = b.itemnumber;
+
+-- insert til reserves
+INSERT INTO reserves (borrowernumber, reservedate, biblionumber, branchcode, found, itemnumber, expirationdate)
+SELECT lnr, resdate, biblo, avd, stat, copy, expdate FROM res;
+
+-- slett midlertidig tabell
+DROP TABLE res;
+```
+
 ### Autoritetsregister
 
 pga. unicodeprob må det gjøres i to omganger:

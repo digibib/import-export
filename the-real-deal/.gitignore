@@ -4,3 +4,4 @@
 *.sql
 test.pl
 /stats
+temp.go
