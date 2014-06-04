@@ -14,6 +14,10 @@
 
 * `lnel2sql.go`: hent epostadresser fra lnel-registeret, for import til MySQL
 
+* `res2csv.go`: konverter reserveringsregisteret til CSV.
+
+* `respri.go`: korrigér plass i reserveringskøen.
+
 ## Installer avhengigheter (ubuntu)
 
 * yaz:
@@ -272,6 +276,10 @@ Generér CSV:
 
 ```bash
 go run res2csv.go -i=data.res.20140603-042058.txt -o=res.csv
+# sorter etter tittelnummer og prioritet:
+cat res.csv | sort -t"|" -k1,1n -k2,2nr > res_sorted.csv
+# omregn prioritet til kønr:
+go run respri.go -i=res_sorted.csv -o=res.csv
 ```
 
 Importer til en midlertidig tabell i MySQL:
@@ -293,8 +301,8 @@ UPDATE res a
 SET a.copy = b.itemnumber;
 
 -- insert til reserves
-INSERT INTO reserves (borrowernumber, reservedate, biblionumber, branchcode, found, itemnumber, expirationdate)
-SELECT lnr, resdate, biblo, avd, stat, copy, expdate FROM res;
+INSERT INTO reserves (borrowernumber, reservedate, biblionumber, branchcode, priority, found, itemnumber, expirationdate)
+SELECT lnr, resdate, biblo, avd, pri, stat, copy, expdate FROM res;
 
 -- slett midlertidig tabell
 DROP TABLE res;
