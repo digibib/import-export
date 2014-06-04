@@ -105,6 +105,11 @@ func main() {
 		if line == "^" {
 			rec := parseRecord(b)
 
+			if rec["res_exnr"] == "998" {
+				// eksemplarnr 998 = innlån. Hopper over disse
+				continue
+			}
+
 			// biblionumber
 			row[0] = rec["res_titnr"]
 
