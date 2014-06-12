@@ -96,7 +96,7 @@ go run lmarc2csv.go -i=data.lmarc.20140520-104911.txt -o=lmarc.csv
 Last inn i midlertidig tabell i MySQL (husk å starte MySQL med `--local-infile=1`):
 
 ```sql
-CREATE TABLE lmarc (lnr INT, foresatt VARCHAR(128), avd VARCHAR(10), mld TEXT, sjekkpost INT, tlfjobb VARCHAR(64), tlfmobil VARCHAR(64), tlfsms VARCHAR(64), pin VARCHAR(60), historikk INT, nlnummer VARCHAR(16));
+CREATE TABLE lmarc (lnr INT, foresatt VARCHAR(128), avd VARCHAR(10), mld TEXT, sjekkpost INT, tlfjobb VARCHAR(64), tlfmobil VARCHAR(64), tlfsms VARCHAR(64), pin VARCHAR(60), historikk INT, nlnummer VARCHAR(16), fnr VARCHAR(32));
 LOAD DATA LOCAL INFILE '/vagrant/lmarc.csv' INTO TABLE lmarc
 CHARACTER SET utf8
 FIELDS TERMINATED BY '|'
@@ -127,13 +127,13 @@ WHERE NOT EXISTS
 ```
 
 Rydd opp i det, f.eks ved å sette avdeling til ukjent:
+
 ```sql
 UPDATE lmarc
   SET avd='ukjent'
   WHERE NOT EXISTS
      (SELECT NULL FROM branches WHERE branches.branchcode = lmarc.avd);
 ```
-
 
 Oppdatér borrowers-tabellen med info fra det midlertidige lmarc-tabellen:
 
@@ -144,6 +144,15 @@ SET a.contactname = b.foresatt, a.branchcode = b.avd,
     a.phonepro = b.tlfjobb, a.mobile = b.tlfmobil, a.smsalertnumber = b.tlfsms,
     a.password = b.pin, a.privacy = b.historikk,
     a.cardnumber = b.nlnummer, a.userid = b.nlnummer;
+```
+
+Legg inn personnummer som extended patron attribute:
+```sql
+INSERT INTO borrower_attribute_types (code, description)
+            VALUES ("fnr", "Fødselsnummer");
+INSERT INTO borrower_attributes (borrowernumber, code, attribute)
+            SELECT lnr, "fnr", fnr FROM lmarc
+            WHERE fnr IS NOT NULL;
 ```
 
 ### Katalog og Eksemplarregister
