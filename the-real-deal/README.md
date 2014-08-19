@@ -207,7 +207,7 @@ INSERT INTO borrower_attributes (borrowernumber, code, attribute)
 NB: for at tittelnummrene skal brukes som biblioitemnumber, må du `git bz apply 6113`.
 
   ```bash
-  sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl /usr/local/src/kohaclone/misc/migration_tools/bulkmarcimport.pl -d -file /vagrant/out.marcxml -g 001 -v 2 -b -m=MARCXML
+  sudo PERL5LIB=/usr/local/src/kohaclone KOHA_CONF=/etc/koha/sites/knakk/koha-conf.xml perl /usr/local/src/kohaclone/misc/migration_tools/bulkmarcimport.pl -d -file /vagrant/out.marcxml -g 001 -v 1 -b -m=MARCXML
 ```
 #### 6. SQL updates
 Ikke all informasjon kommer med ved bulkmarcimporten. Noe trenger manuell oppdatering:
