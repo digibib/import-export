@@ -198,6 +198,7 @@ INSERT INTO borrower_attributes (borrowernumber, code, attribute)
     ("NOT_LOAN", "5", "vurderes kassert"),
     ("NOT_LOAN", "6", "til retting"),
     ("NOT_LOAN", "7", "til innbinding"),
+    ("NOT_LOAN", "8", "referanseverk"),
     ("RESTRICTED", "1", "begrenset tilgang"),
     ("RESTRICTED", "2", "referanseverk");
    ```
