@@ -164,7 +164,7 @@ INSERT INTO borrower_attributes (borrowernumber, code, attribute)
 
 #### 2. Konvertér exemp registeret til CSV:
 
-   `go run ex2csv.go <exemp-eksport> <ex.csv>`
+   `go run ex2csv.go -i=<exemp-eksport> -o=ex.csv`
 
 #### 3. Slå sammen katalog- og eksemplardata.
 
