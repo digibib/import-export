@@ -203,9 +203,8 @@ RECORD: while ( my $record = $batch->next() ) {
             if ( @$x[UTLKODE] ne ""
                 && ( @$x[UTLKODE] eq "r" || @$x[UTLKODE] eq "e" ) )
             {
-
                 # referanseverk: ikke til utlån
-                $field952->add_subfields( '7' => '8' );
+                $field952->add_subfields( '5' => '2' );
             }
 
             switch ( @$x[STATUS] ) {
