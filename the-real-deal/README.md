@@ -160,7 +160,7 @@ INSERT INTO borrower_attributes (borrowernumber, code, attribute)
 
 #### 1. Konvertér katalog til marcxml
 
-   `hoggestabe -i=data.vmarc.txt -o=bib.marcxml`
+   `hoggestabbe -i=data.vmarc.txt -o=bib.marcxml`
 
 #### 2. Konvertér exemp registeret til CSV:
 
