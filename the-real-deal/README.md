@@ -317,6 +317,25 @@ SELECT lnr, resdate, biblo, avd, pri, stat, copy, expdate FROM res;
 DROP TABLE res;
 ```
 
+### Periodika (WIP)
+
+Generér CSV av leverandører:
+
+```bash
+go run perlev2csv.go -i=data.perlev.20140801-074131.txt -o=perlev.csv
+```
+
+Importer til en midlertidig tabell i MySQL:
+
+```sql
+CREATE TABLE perlev (name VARCHAR(256), address1 VARCHAR(64), address2 VARCHAR(64), address3 VARCHAR(64), address4 VARCHAR(64), postal VARCHAR(256), phone VARCHAR(64), booksellerfax VARCHAR(64) , bookselleremail VARCHAR(64), url VARCHAR(64), contact VARCHAR(64), note VARCHAR(64));
+LOAD DATA LOCAL INFILE '/vagrant/perlev.csv' INTO TABLE perlev
+CHARACTER SET utf8
+FIELDS TERMINATED BY '|'
+LINES TERMINATED BY '\n';
+SHOW WARNINGS;
+```
+
 ### Autoritetsregister
 
 pga. unicodeprob må det gjøres i to omganger:
