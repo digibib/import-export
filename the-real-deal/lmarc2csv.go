@@ -80,10 +80,8 @@ func startDispatcher(numWorkers int, r chan []string, workQueue chan workRequest
 	for {
 		select {
 		case work := <-workQueue:
-			go func() {
-				worker := <-q
-				worker <- work
-			}()
+			worker := <-q
+			worker <- work
 		case <-stop:
 			for i := range workers {
 				workers[i].stop()
@@ -247,7 +245,7 @@ func main() {
 		}
 		lines = append(lines, line)
 	}
-	fmt.Println("got here")
+
 	stopChan <- true
 	<-stopChan
 
