@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -30,66 +31,73 @@ func orNULL(s string) string {
 	return strings.Replace(s, "|", "", -1)
 }
 
-func main() {
-	inFile := flag.String("i", "data.lmarc.20140520-104911.txt", "input file (lmarc)")
-	outFile := flag.String("o", "lmarc.csv", "output file (csv)")
-	flag.Parse()
+type workRequest []string
 
-	if *inFile == "" || *outFile == "" {
-		fmt.Println("Missing parameters:")
-		flag.PrintDefaults()
-		log.Fatal("exiting")
+type worker struct {
+	work        chan workRequest
+	workerQueue chan chan workRequest
+	resultsChan chan []string
+	quitChan    chan bool
+}
+
+func newWorker(w chan chan workRequest, r chan []string) worker {
+	return worker{
+		work:        make(chan workRequest),
+		workerQueue: w,
+		resultsChan: r,
+		quitChan:    make(chan bool),
+	}
+}
+
+func (w worker) run() {
+	for {
+		w.workerQueue <- w.work
+
+		select {
+		case lines := <-w.work:
+			row := process(lines)
+			w.resultsChan <- row
+		case <-w.quitChan:
+			return
+		}
+	}
+}
+
+func (w worker) stop() {
+	w.quitChan <- true
+}
+
+func startDispatcher(numWorkers int, r chan []string, workQueue chan workRequest, stop chan bool) {
+	q := make(chan chan workRequest, numWorkers)
+
+	var workers []worker
+	for i := 0; i < numWorkers; i++ {
+		w := newWorker(q, r)
+		go w.run()
+		workers = append(workers, w)
 	}
 
-	in, err := os.Open(*inFile)
-	if err != nil {
-		log.Fatal(err)
+	for {
+		select {
+		case work := <-workQueue:
+			go func() {
+				worker := <-q
+				worker <- work
+			}()
+		case <-stop:
+			for i := range workers {
+				workers[i].stop()
+			}
+			stop <- true
+			return
+		}
 	}
-	defer in.Close()
+}
 
-	out, err := os.Create(*outFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer out.Close()
-
-	w := csv.NewWriter(out)
-	w.Comma = '|'
-	defer w.Flush()
-
-	scanner := bufio.NewScanner(in)
-
-	c := 0
+func process(lines []string) []string {
 	row := make([]string, 12)
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "^" {
-			// Set nullable columns to NULL when they contain empty string
-			for i := range row {
-				row[i] = orNULL(row[i])
-			}
-			if row[9] == `\N` {
-				// borrowers.privacy default to 1
-				row[9] = "1"
-			}
-
-			// Write CSV row
-			err = w.Write(row)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			for i := range row {
-				row[i] = ""
-			}
-
-			c = c + 1
-			fmt.Printf("%d records processed\r", c)
-
-			continue
-		}
-
+	for _, line := range lines {
 		// parse content
 		switch line[1:4] {
 		case "001": // lånenummer
@@ -162,8 +170,86 @@ func main() {
 				row[11] = fields["b"]
 			}
 		}
-
 	}
+
+	// Set nullable columns to NULL when they contain empty string
+	for i := range row {
+		row[i] = orNULL(row[i])
+	}
+	if row[9] == `\N` {
+		// borrowers.privacy default to 1
+		row[9] = "1"
+	}
+
+	return row
+}
+
+func main() {
+	numCPU := runtime.NumCPU()
+	runtime.GOMAXPROCS(numCPU)
+
+	inFile := flag.String("i", "data.lmarc.20140520-104911.txt", "input file (lmarc)")
+	outFile := flag.String("o", "lmarc.csv", "output file (csv)")
+	flag.Parse()
+
+	if *inFile == "" || *outFile == "" {
+		fmt.Println("Missing parameters:")
+		flag.PrintDefaults()
+		log.Fatal("exiting")
+	}
+
+	in, err := os.Open(*inFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer in.Close()
+
+	out, err := os.Create(*outFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
+
+	w := csv.NewWriter(out)
+	w.Comma = '|'
+	defer w.Flush()
+
+	workChan := make(chan workRequest)
+	resultsChan := make(chan []string)
+	stopChan := make(chan bool)
+	go startDispatcher(numCPU, resultsChan, workChan, stopChan)
+
+	c := 0
+	go func() {
+		for {
+			row := <-resultsChan
+
+			// Write CSV row
+			err = w.Write(row)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			c = c + 1
+			fmt.Printf("%d records processed\r", c)
+		}
+	}()
+
+	var lines []string
+	scanner := bufio.NewScanner(in)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "^" {
+			workChan <- workRequest(lines)
+
+			lines = make([]string, 0)
+			continue
+		}
+		lines = append(lines, line)
+	}
+	fmt.Println("got here")
+	stopChan <- true
+	<-stopChan
 
 	fmt.Printf("Done with %d records.", c)
 
