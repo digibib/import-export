@@ -31,7 +31,7 @@
 ### Eksportér alle registere fra carl
   Kjør skriptet `/home/petterg/eksport.sh` på carl. Dette vil eksportere alle registerne til mappa `/usr/biblo/dumpreg `.
 
-  Kopier alle registerdumpene til egen maskin:
+Eksporterer alle data fra bibliofil til tekstfiler i /usr/biblo/dumpreg, og kopierer til wombat i mappa:
 ```
 $telnet carl
 carl$ /home/petterg/eksport.sh
