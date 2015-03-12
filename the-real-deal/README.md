@@ -29,11 +29,14 @@
 ## Import fra begynnelse til slutt
 
 ### Eksportér alle registere fra carl
-
   Kjør skriptet `/home/petterg/eksport.sh` på carl. Dette vil eksportere alle registerne til mappa `/usr/biblo/dumpreg `.
 
   Kopier alle registerdumpene til egen maskin:
-  `scp /usr/biblo/dumpreg <username>@<host>:/your/path`
+```
+$telnet carl
+carl$ /home/petterg/eksport.sh
+carl$ scp /usr/biblo/dumpreg/*.txt <username>@10.172.2.160:/data/bibliofildumps
+```
 
 ### Lånerregister
 
